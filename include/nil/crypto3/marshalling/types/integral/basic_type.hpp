@@ -30,9 +30,12 @@
 
 #include <boost/type_traits/is_integral.hpp>
 
-#include <nil/crypto3/multiprecision/number.hpp>
-
 #include <nil/marshalling/status_type.hpp>
+
+#include <nil/crypto3/multiprecision/number.hpp>
+#include <nil/crypto3/multiprecision/cpp_int.hpp>
+
+#include <nil/crypto3/marshalling/processing/access.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -50,7 +53,6 @@ namespace nil {
 
                     public:
                         using value_type = T;
-
                         using serialized_type = value_type;
 
                         basic_integral() = default;
@@ -93,30 +95,36 @@ namespace nil {
                         }
 
                         static constexpr value_type from_serialized(serialized_type val) {
-                            return static_cast<value_type>(val);
+                            return val;
                         }
 
                         template<typename TIter>
                         nil::marshalling::status_type read(TIter &iter, std::size_t size) {
-                            if (size < length()) {
-                                return nil::marshalling::status_type::not_enough_data;
-                            }
+                            // if (size < length()) {
+                            //     return nil::marshalling::status_type::not_enough_data;
+                            // }
 
-                            read_no_status(iter);
+                            read_no_status(iter, size);
                             return nil::marshalling::status_type::success;
                         }
 
                         template<typename TIter>
                         void read_no_status(TIter &iter) {
-                            serialized_type serializedValue = base_impl_type::template read_data<serialized_type>(iter);
-                            value_ = from_serialized(serializedValue);
+                            read_no_status(length());
                         }
-
+                    private:
+                        template<typename TIter>
+                        void read_no_status(TIter &iter, std::size_t size) {
+                            value_ = crypto3::marshalling::
+                                processing::read_data<T>(iter, size,
+                                    typename base_impl_type::endian_type());
+                        }
+                    public:
                         template<typename TIter>
                         nil::marshalling::status_type write(TIter &iter, std::size_t size) const {
-                            if (size < length()) {
-                                return nil::marshalling::status_type::buffer_overflow;
-                            }
+                            // if (size < length()) {
+                            //     return nil::marshalling::status_type::buffer_overflow;
+                            // }
 
                             write_no_status(iter);
                             return nil::marshalling::status_type::success;
@@ -124,7 +132,9 @@ namespace nil {
 
                         template<typename TIter>
                         void write_no_status(TIter &iter) const {
-                            base_impl_type::write_data(to_serialized(value_), iter);
+                            crypto3::marshalling::processing::
+                                write_data<T>(value_, iter, 
+                                    typename base_impl_type::endian_type());
                         }
 
                     private:

@@ -25,25 +25,130 @@
 
 #define BOOST_TEST_MODULE crypto3_marshalling_integral_test
 
-#include <boost/array.hpp>
-#include <boost/cstdint.hpp>
-
 #include <boost/test/unit_test.hpp>
-#include <boost/test/data/test_case.hpp>
-#include <boost/test/data/monomorphic.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+// #include "test.hpp"
+#include <iostream>
+#include <iomanip>
 
-#include <nil/marshalling/algorithms/pack.hpp>
+#include <nil/marshalling/status_type.hpp>
+
+#include <nil/crypto3/multiprecision/cpp_int.hpp>
+#include <nil/crypto3/multiprecision/number.hpp>
+
 #include <nil/crypto3/marshalling/types/integral.hpp>
+#include <nil/marshalling/field_type.hpp>
 
-#include <cstdio>
+template<class T>
+struct unchecked_type {
+    typedef T type;
+};
 
-using namespace nil::marshalling;
-using namespace nil::crypto3::marshalling;
+template<unsigned MinBits, unsigned MaxBits, nil::crypto3::multiprecision::cpp_integer_type SignType,
+         nil::crypto3::multiprecision::cpp_int_check_type Checked, class Allocator,
+         nil::crypto3::multiprecision::expression_template_option ExpressionTemplates>
+struct unchecked_type<nil::crypto3::multiprecision::number<
+    nil::crypto3::multiprecision::cpp_int_backend<MinBits, MaxBits, SignType, Checked, Allocator>,
+    ExpressionTemplates>> {
+    typedef nil::crypto3::multiprecision::number<
+        nil::crypto3::multiprecision::cpp_int_backend<MinBits, MaxBits, SignType,
+                                                      nil::crypto3::multiprecision::unchecked, Allocator>,
+        ExpressionTemplates>
+        type;
+};
 
-BOOST_AUTO_TEST_SUITE(pack_imploder_test_suite)
+template<class T>
+T generate_random() {
+    typedef typename unchecked_type<T>::type unchecked_T;
 
-BOOST_AUTO_TEST_CASE(be_to_be_1) {
-    
+    static const unsigned limbs = std::numeric_limits<T>::is_specialized && std::numeric_limits<T>::is_bounded ?
+                                      std::numeric_limits<T>::digits / std::numeric_limits<unsigned>::digits + 3 :
+                                      20;
+
+    static boost::random::uniform_int_distribution<unsigned> ui(0, limbs);
+    static boost::random::mt19937 gen;
+    unchecked_T val = gen();
+    unsigned lim = ui(gen);
+    for (unsigned i = 0; i < lim; ++i) {
+        val *= (gen.max)();
+        val += gen();
+    }
+    return val;
+}
+
+template <typename TIter>
+void print_byteblob(TIter iter_begin, TIter iter_end){
+    for (TIter it = iter_begin; 
+         it != iter_end;
+         it++){
+        std::cout << std::hex << int(*it) << std::endl;
+    }
+}
+
+template<class T>
+void test_round_trip(T val) {
+    using namespace nil::crypto3::marshalling;
+
+    types::integral<nil::marshalling::field_type<
+        nil::marshalling::option::little_endian>,
+        T> test_val;
+
+    std::vector<unsigned char> cv;
+    export_bits(val, std::back_inserter(cv), 8);
+
+    auto read_iter = cv.begin();
+    nil::marshalling::status_type status = 
+        test_val.read(read_iter, cv.size());
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+    BOOST_CHECK(val == test_val.value());
+
+    std::vector<unsigned char> test_val_byteblob;
+    test_val_byteblob.resize(cv.size());
+    auto write_iter = test_val_byteblob.begin();
+
+    status = test_val.write(write_iter, test_val_byteblob.size());
+	BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+	BOOST_CHECK(cv == test_val_byteblob);
+}
+
+template<class T>
+void test_round_trip() {
+    std::cout << std::hex;
+    std::cerr << std::hex;
+    for (unsigned i = 0; i < 1000; ++i) {
+        T val = generate_random<T>();
+        test_round_trip(val);
+    }
+}
+
+BOOST_AUTO_TEST_SUITE(integral_test_suite)
+
+BOOST_AUTO_TEST_CASE(integral_cpp_int) {
+	test_round_trip<nil::crypto3::multiprecision::cpp_int>();
+}
+
+BOOST_AUTO_TEST_CASE(integral_checked_int1024) {
+    test_round_trip<nil::crypto3::multiprecision::checked_int1024_t>();
+}
+
+BOOST_AUTO_TEST_CASE(integral_cpp_uint512) {
+    test_round_trip<nil::crypto3::multiprecision::checked_uint512_t>();
+}
+
+BOOST_AUTO_TEST_CASE(integral_cpp_int_backend_64) {
+    test_round_trip<nil::crypto3::multiprecision::number<nil::crypto3::multiprecision::cpp_int_backend<
+        64, 64, nil::crypto3::multiprecision::unsigned_magnitude, nil::crypto3::multiprecision::checked, void>>>();
+}
+
+BOOST_AUTO_TEST_CASE(integral_cpp_int_backend_23) {
+    test_round_trip<nil::crypto3::multiprecision::number<nil::crypto3::multiprecision::cpp_int_backend<
+        23, 23, nil::crypto3::multiprecision::unsigned_magnitude, nil::crypto3::multiprecision::checked, void>>>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

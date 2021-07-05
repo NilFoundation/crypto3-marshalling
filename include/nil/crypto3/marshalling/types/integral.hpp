@@ -87,10 +87,17 @@ namespace nil {
                 /// @extends nil::marshalling::field_type
                 /// @headerfile nil/marshalling/types/integral.hpp
                 template<typename TFieldBase, 
+                         typename IntegralContainer, 
+                         typename... TOptions>
+                class integral;
+
+                template<typename TFieldBase, 
                          typename Backend,
                          multiprecision::expression_template_option ExpressionTemplates, 
                          typename... TOptions>
-                class integral : 
+                class integral<TFieldBase, 
+                               multiprecision::number<Backend, ExpressionTemplates>,
+                               TOptions...> : 
                     private ::nil::marshalling::types::detail::adapt_basic_field_type<
                         crypto3::marshalling::types::detail::basic_integral<TFieldBase, 
                                                Backend,
@@ -243,13 +250,13 @@ namespace nil {
 
                     // because such an adapter uses pure byte reading, 
                     // incompatible with crypto3::multiprecision
-                    static_assert(!parsed_options_type::has_fixed_length,
+                    static_assert(!parsed_options_type::has_fixed_length_limit,
                                   "nil::marshalling::option::fixed_length option is not applicable to "
                                   "crypto3::integral type");
 
                     // because such an adapter uses pure byte reading, 
                     // incompatible with crypto3::multiprecision
-                    static_assert(!parsed_options_type::has_fixed_bit_length,
+                    static_assert(!parsed_options_type::has_fixed_bit_length_limit,
                                   "nil::marshalling::option::fixed_bit_length option is not applicable to "
                                   "crypto3::integral type");
 
@@ -317,11 +324,11 @@ namespace nil {
                          multiprecision::expression_template_option ExpressionTemplates, 
                          typename... TOptions>
                 bool operator==(const integral<TFieldBase, 
-                                               Backend,
-                                               ExpressionTemplates, TOptions...> &field1,
+                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                                               TOptions...> &field1,
                                 const integral<TFieldBase, 
-                                               Backend,
-                                               ExpressionTemplates, TOptions...> &field2) {
+                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                                               TOptions...> &field2) {
                     return field1.value() == field2.value();
                 }
 
@@ -335,11 +342,11 @@ namespace nil {
                          multiprecision::expression_template_option ExpressionTemplates, 
                          typename... TOptions>
                 bool operator!=(const integral<TFieldBase, 
-                                               Backend,
-                                               ExpressionTemplates, TOptions...> &field1,
+                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                                               TOptions...> &field1,
                                 const integral<TFieldBase, 
-                                               Backend,
-                                               ExpressionTemplates, TOptions...> &field2) {
+                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                                               TOptions...> &field2) {
                     return field1.value() != field2.value();
                 }
 
@@ -353,11 +360,11 @@ namespace nil {
                          multiprecision::expression_template_option ExpressionTemplates, 
                          typename... TOptions>
                 bool operator<(const integral<TFieldBase, 
-                                               Backend,
-                                               ExpressionTemplates, TOptions...> &field1,
+                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                                               TOptions...> &field1,
                                const integral<TFieldBase, 
-                                               Backend,
-                                               ExpressionTemplates, TOptions...> &field2) {
+                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                                               TOptions...> &field2) {
                     return field1.value() < field2.value();
                 }
 
@@ -369,10 +376,10 @@ namespace nil {
                          multiprecision::expression_template_option ExpressionTemplates, 
                          typename... TOptions>
                 inline integral<TFieldBase, 
-                                Backend,
-                                ExpressionTemplates, TOptions...> &to_field_base(integral<TFieldBase, 
-                                Backend,
-                                ExpressionTemplates, TOptions...> &field) {
+                                multiprecision::number<Backend, ExpressionTemplates>, 
+                                TOptions...> &to_field_base(integral<TFieldBase, 
+                                multiprecision::number<Backend, ExpressionTemplates>, 
+                                TOptions...> &field) {
                     return field;
                 }
 
@@ -384,11 +391,11 @@ namespace nil {
                          multiprecision::expression_template_option ExpressionTemplates, 
                          typename... TOptions>
                 inline const integral<TFieldBase, 
-                                      Backend,
-                                      ExpressionTemplates, TOptions...> &
+                                      multiprecision::number<Backend, ExpressionTemplates>, 
+                                      TOptions...> &
                     to_field_base(const integral<TFieldBase, 
-                                      Backend,
-                                      ExpressionTemplates, TOptions...> &field) {
+                                      multiprecision::number<Backend, ExpressionTemplates>, 
+                                      TOptions...> &field) {
                     return field;
                 }
 
