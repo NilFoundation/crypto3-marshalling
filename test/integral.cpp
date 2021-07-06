@@ -29,19 +29,19 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
-// #include "test.hpp"
 #include <iostream>
 #include <iomanip>
 
 #include <nil/marshalling/status_type.hpp>
 // #include <nil/marshalling/types/array_list.hpp>
-// #include <nil/marshalling/field_type.hpp>
+#include <nil/marshalling/field_type.hpp>
+#include <nil/marshalling/endianness.hpp>
 
 #include <nil/crypto3/multiprecision/cpp_int.hpp>
 #include <nil/crypto3/multiprecision/number.hpp>
 
 #include <nil/crypto3/marshalling/types/integral.hpp>
-#include <nil/marshalling/field_type.hpp>
+
 
 template<class T>
 struct unchecked_type {
@@ -90,25 +90,37 @@ void print_byteblob(TIter iter_begin, TIter iter_end){
 }
 
 template<class T>
-void test_round_trip_fixed_precision(T val) {
+void test_round_trip_fixed_precision_big_endian(T val) {
     using namespace nil::crypto3::marshalling;
+    std::size_t units_bits = 8;
+    using unit_type = unsigned char;
+    using integral_type = types::integral<
+        nil::marshalling::field_type<
+        nil::marshalling::option::big_endian>,
+        T>;
+    std::size_t unitblob_size = 
+        integral_type::length()/units_bits + 
+        ((integral_type::length()%units_bits)?1:0);
+    integral_type test_val;
 
-    types::integral<nil::marshalling::field_type<
-        nil::marshalling::option::little_endian>,
-        T> test_val;
+    std::vector<unit_type> cv;
+    cv.resize(unitblob_size, 0x00);
+    std::size_t begin_index = cv.size() - 
+        ((nil::crypto3::multiprecision::msb(val) + 1)/units_bits + 
+            (((nil::crypto3::multiprecision::msb(val) + 1) % units_bits)?1:0));
 
-    std::vector<unsigned char> cv;
-    export_bits(val, std::back_inserter(cv), 8);
+    export_bits(val, cv.begin() + begin_index,
+        units_bits, true);
 
     auto read_iter = cv.begin();
     nil::marshalling::status_type status = 
-        test_val.read(read_iter, cv.size());
+        test_val.read(read_iter, cv.size() * units_bits);
     BOOST_CHECK(status == 
         nil::marshalling::status_type::success);
 
     BOOST_CHECK(val == test_val.value());
 
-    std::vector<unsigned char> test_val_byteblob;
+    std::vector<unit_type> test_val_byteblob;
     test_val_byteblob.resize(cv.size());
     auto write_iter = test_val_byteblob.begin();
 
@@ -125,10 +137,9 @@ void test_round_trip_fixed_precision() {
     std::cerr << std::hex;
     for (unsigned i = 0; i < 1000; ++i) {
         T val = generate_random<T>();
-        test_round_trip_fixed_precision(val);
+        test_round_trip_fixed_precision_big_endian(val);
     }
 }
-
 
 // template<class T>
 // void test_array_list(T val, T val2, T val3, T val4, T val5) {
@@ -178,9 +189,9 @@ void test_array_list() {
 
 BOOST_AUTO_TEST_SUITE(integral_test_suite)
 
-BOOST_AUTO_TEST_CASE(integral_cpp_int) {
-	test_round_trip_fixed_precision<nil::crypto3::multiprecision::cpp_int>();
-}
+// BOOST_AUTO_TEST_CASE(integral_cpp_int) {
+// 	test_round_trip_non_fixed_precision<nil::crypto3::multiprecision::cpp_int>();
+// }
 
 BOOST_AUTO_TEST_CASE(integral_checked_int1024) {
     test_round_trip_fixed_precision<nil::crypto3::multiprecision::checked_int1024_t>();

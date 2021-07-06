@@ -159,7 +159,7 @@ namespace nil {
 
                     /// @brief Get length required to serialise the current field value.
                     /// @return Number of bytes it will take to serialise the field value.
-                    constexpr std::size_t length() const {
+                    static constexpr std::size_t  length() {
                         return base_impl_type::length();
                     }
 

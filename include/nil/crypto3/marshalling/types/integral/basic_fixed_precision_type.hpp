@@ -122,7 +122,7 @@ namespace nil {
                         template<typename TIter>
                         void read_no_status(TIter &iter) {
                             value_ = crypto3::marshalling::
-                                processing::read_data<T, length()>(iter,
+                                processing::read_data<length(), value_type>(iter,
                                     typename base_impl_type::endian_type());
                         }
                     
@@ -139,7 +139,7 @@ namespace nil {
                         template<typename TIter>
                         void write_no_status(TIter &iter) const {
                             crypto3::marshalling::processing::
-                                write_data<T, length()>(value_, iter, 
+                                write_data<length()>(value_, iter, 
                                     typename base_impl_type::endian_type());
                         }
 
