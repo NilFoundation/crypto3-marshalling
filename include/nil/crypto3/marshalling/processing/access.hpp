@@ -54,8 +54,23 @@ namespace nil {
                     std::size_t chunk_size = sizeof(typename TIter::value_type) * byte_size;
 
                     export_bits(value, iter, chunk_size, false);
+                }
 
-                    // detail::writer<detail::write_helper>::template write<endian::big_endian>(value, iter);
+                /// @brief Write part of integral value into the output area using big
+                ///     endian notation.
+                /// @tparam TSize Number of bytes to write.
+                /// @param[in] value Integral type value to be written.
+                /// @param[in, out] iter Output iterator.
+                /// @pre TSize <= sizeof(T).
+                /// @pre The iterator must be valid and can be successfully dereferenced
+                ///      and incremented at least TSize times.
+                /// @post The iterator is advanced.
+                template<typename T, std::size_t TSize, typename TIter>
+                void write_big_endian(T value, TIter &iter) {
+                    std::size_t byte_size = 8;
+                    std::size_t chunk_size = sizeof(typename TIter::value_type) * byte_size;
+
+                    export_bits(value, iter, chunk_size, false);
                 }
 
                 /// @brief Read part of integral value from the input area using big
@@ -74,14 +89,30 @@ namespace nil {
                     std::size_t byte_size = 8;
                     std::size_t chunk_size = sizeof(typename TIter::value_type) * byte_size;
 
-                    TIter iter_begin = iter;
-                    TIter iter_end = iter + size;
                     multiprecision::import_bits(serializedValue, 
                         iter, iter + size, chunk_size, false);
                     return serializedValue;
+                }
 
-                    // return detail::reader<detail::read_helper>::template 
-                    //     read<T, endian::big_endian>(iter, size);
+                /// @brief Read part of integral value from the input area using big
+                ///     endian notation.
+                /// @tparam T Type to read.
+                /// @tparam TSize Number of bytes to read.
+                /// @param[in, out] iter Input iterator.
+                /// @return Read value
+                /// @pre TSize <= sizeof(T).
+                /// @pre The iterator must be valid and can be successfully dereferenced
+                ///      and incremented at least TSize times.
+                /// @post The iterator is advanced.
+                template<typename T, std::size_t TSize, typename TIter>
+                T read_big_endian(TIter &iter) {
+                    T serializedValue;
+                    std::size_t byte_size = 8;
+                    std::size_t chunk_size = sizeof(typename TIter::value_type) * byte_size;
+
+                    multiprecision::import_bits(serializedValue, 
+                        iter, iter + TSize, chunk_size, false);
+                    return serializedValue;
                 }
 
                 /// @brief Write integral value into the output area using big
@@ -97,8 +128,21 @@ namespace nil {
                     std::size_t chunk_size = sizeof(typename TIter::value_type) * byte_size;
 
                     export_bits(value, iter, chunk_size, true);
+                }
 
-                    // detail::writer<detail::write_helper>::template write<endian::little_endian>(value, iter);
+                /// @brief Write integral value into the output area using big
+                ///     endian notation.
+                /// @param[in] value Integral type value to be written.
+                /// @param[in, out] iter Output iterator.
+                /// @pre The iterator must be valid and can be successfully dereferenced
+                ///      and incremented at least sizeof(T) times.
+                /// @post The iterator is advanced.
+                template<typename T, std::size_t TSize, typename TIter>
+                void write_little_endian(T value, TIter &iter) {
+                    std::size_t byte_size = 8;
+                    std::size_t chunk_size = sizeof(typename TIter::value_type) * byte_size;
+
+                    export_bits(value, iter, chunk_size, true);
                 }
 
                 /// @brief Read integral value from the input area using little
@@ -118,12 +162,28 @@ namespace nil {
                     multiprecision::import_bits(serializedValue, 
                         iter, iter + size, chunk_size, true);
                     return serializedValue;
-
-                    // return detail::reader<detail::read_helper>::template 
-                    //     read<T, endian::little_endian>(iter, size);
                 }
 
-                /// @brief Same as writeBig<T, TIter>()
+                /// @brief Read integral value from the input area using little
+                ///     endian notation.
+                /// @tparam T Type to read.
+                /// @param[in, out] iter Input iterator.
+                /// @return Read value
+                /// @pre The iterator must be valid and can be successfully dereferenced
+                ///      and incremented at least sizeof(T) times.
+                /// @post The iterator is advanced.
+                template<typename T, std::size_t TSize, typename TIter>
+                T read_little_endian(TIter &iter) {
+                    T serializedValue;
+                    std::size_t byte_size = 8;
+                    std::size_t chunk_size = sizeof(typename TIter::value_type) * byte_size;
+
+                    multiprecision::import_bits(serializedValue, 
+                        iter, iter + TSize, chunk_size, true);
+                    return serializedValue;
+                }
+
+                /// @brief Same as write_big_endian<T, TIter>()
                 template<typename T, typename TIter>
                 void write_data(T value, TIter &iter, 
                     const nil::marshalling::endian::big_endian &endian) {
@@ -131,7 +191,15 @@ namespace nil {
                     write_big_endian(value, iter);
                 }
 
-                /// @brief Same as writeLittle<T, TIter>()
+                /// @brief Same as write_big_endian<T, TSize, TIter>()
+                template<typename T, std::size_t TSize, typename TIter>
+                void write_data(T value, TIter &iter, 
+                    const nil::marshalling::endian::big_endian &endian) {
+                    static_cast<void>(endian);
+                    write_big_endian<TSize>(value, iter);
+                }
+
+                /// @brief Same as write_little_endian<T, TIter>()
                 template<typename T, typename TIter>
                 void write_data(T value, TIter &iter, 
                     const nil::marshalling::endian::little_endian &endian) {
@@ -139,7 +207,15 @@ namespace nil {
                     write_little_endian(value, iter);
                 }
 
-                /// @brief Same as readBig<T, TIter>()
+                /// @brief Same as write_little_endian<T, TSize, TIter>()
+                template<typename T, std::size_t TSize, typename TIter>
+                void write_data(T value, TIter &iter, 
+                    const nil::marshalling::endian::little_endian &endian) {
+                    static_cast<void>(endian);
+                    write_little_endian<TSize>(value, iter);
+                }
+
+                /// @brief Same as read_big_endian<T, TIter>()
                 template<typename T, typename TIter>
                 T read_data(TIter &iter, std::size_t size, 
                     const nil::marshalling::endian::big_endian &endian) {
@@ -148,13 +224,31 @@ namespace nil {
                     return read_big_endian<T>(iter, size);
                 }
 
-                /// @brief Same as readLittle<T, TIter>()
+                /// @brief Same as read_big_endian<T, TSize, TIter>()
+                template<typename T, std::size_t TSize, typename TIter>
+                T read_data(TIter &iter, 
+                    const nil::marshalling::endian::big_endian &endian) {
+
+                    static_cast<void>(endian);
+                    return read_big_endian<T, TSize>(iter);
+                }
+
+                /// @brief Same as read_little_endian<T, TIter>()
                 template<typename T, typename TIter>
                 T read_data(TIter &iter, std::size_t size, 
                     const nil::marshalling::endian::little_endian &endian) {
 
                     static_cast<void>(endian);
                     return read_little_endian<T>(iter, size);
+                }
+
+                /// @brief Same as read_little_endian<T, TSize, TIter>()
+                template<typename T, std::size_t TSize, typename TIter>
+                T read_data(TIter &iter, 
+                    const nil::marshalling::endian::little_endian &endian) {
+
+                    static_cast<void>(endian);
+                    return read_little_endian<T, TSize>(iter);
                 }
 
             }    // namespace processing
