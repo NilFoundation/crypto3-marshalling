@@ -39,7 +39,8 @@
 #include <nil/marshalling/types/detail/adapt_basic_field.hpp>
 #include <nil/marshalling/types/tag.hpp>
 
-#include <nil/crypto3/marshalling/types/integral/basic_type.hpp>
+#include <nil/crypto3/marshalling/types/integral/basic_fixed_precision_type.hpp>
+#include <nil/crypto3/marshalling/types/integral/basic_non_fixed_precision_type.hpp>
 
 namespace nil {
     namespace crypto3 {

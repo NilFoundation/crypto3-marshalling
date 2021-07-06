@@ -23,19 +23,14 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#ifndef CRYPTO3_MARSHALLING_BASIC_INTEGRAL_HPP
-#define CRYPTO3_MARSHALLING_BASIC_INTEGRAL_HPP
+#ifndef CRYPTO3_MARSHALLING_BASIC_INTEGRAL_DEFINITION_HPP
+#define CRYPTO3_MARSHALLING_BASIC_INTEGRAL_DEFINITION_HPP
 
 #include <type_traits>
 
 #include <boost/type_traits/is_integral.hpp>
 
-#include <nil/marshalling/status_type.hpp>
-
-#include <nil/crypto3/multiprecision/number.hpp>
-#include <nil/crypto3/multiprecision/cpp_int.hpp>
-
-#include <nil/crypto3/marshalling/processing/access.hpp>
+#include <nil/crypto3/multiprecision/traits/max_digits10.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -45,105 +40,14 @@ namespace nil {
 
                     template<typename TFieldBase, 
                              typename Backend,
-                             multiprecision::expression_template_option ExpressionTemplates>
-                    class basic_integral : public TFieldBase {
-                        using T = multiprecision::number<Backend, ExpressionTemplates>;
-
-                        using base_impl_type = TFieldBase;
-
-                    public:
-                        using value_type = T;
-                        using serialized_type = value_type;
-
-                        basic_integral() = default;
-
-                        explicit basic_integral(value_type val) : value_(val) {
-                        }
-
-                        basic_integral(const basic_integral &) = default;
-
-                        basic_integral(basic_integral &&) = default;
-
-                        ~basic_integral() noexcept = default;
-
-                        basic_integral &operator=(const basic_integral &) = default;
-
-                        basic_integral &operator=(basic_integral &&) = default;
-
-                        const value_type &value() const {
-                            return value_;
-                        }
-
-                        value_type &value() {
-                            return value_;
-                        }
-
-                        static constexpr std::size_t length() {
-                            return sizeof(serialized_type);
-                        }
-
-                        static constexpr std::size_t min_length() {
-                            return length();
-                        }
-
-                        static constexpr std::size_t max_length() {
-                            return length();
-                        }
-
-                        static constexpr serialized_type to_serialized(value_type val) {
-                            return static_cast<serialized_type>(val);
-                        }
-
-                        static constexpr value_type from_serialized(serialized_type val) {
-                            return val;
-                        }
-
-                        template<typename TIter>
-                        nil::marshalling::status_type read(TIter &iter, std::size_t size) {
-                            // if (size < length()) {
-                            //     return nil::marshalling::status_type::not_enough_data;
-                            // }
-
-                            read_no_status(iter, size);
-                            return nil::marshalling::status_type::success;
-                        }
-
-                        template<typename TIter>
-                        void read_no_status(TIter &iter) {
-                            read_no_status(length());
-                        }
-                    private:
-                        template<typename TIter>
-                        void read_no_status(TIter &iter, std::size_t size) {
-                            value_ = crypto3::marshalling::
-                                processing::read_data<T>(iter, size,
-                                    typename base_impl_type::endian_type());
-                        }
-                    public:
-                        template<typename TIter>
-                        nil::marshalling::status_type write(TIter &iter, std::size_t size) const {
-                            // if (size < length()) {
-                            //     return nil::marshalling::status_type::buffer_overflow;
-                            // }
-
-                            write_no_status(iter);
-                            return nil::marshalling::status_type::success;
-                        }
-
-                        template<typename TIter>
-                        void write_no_status(TIter &iter) const {
-                            crypto3::marshalling::processing::
-                                write_data<T>(value_, iter, 
-                                    typename base_impl_type::endian_type());
-                        }
-
-                    private:
-                        value_type value_ = static_cast<value_type>(0);
-                    };
+                             multiprecision::expression_template_option ExpressionTemplates,
+                             bool IsFixedPrecision = 
+                                multiprecision::backends::is_fixed_precision<Backend>::value>
+                    class basic_integral{};
 
                 }    // namespace detail
             }        // namespace types
         }            // namespace marshalling
     }            // namespace crypto3
 }    // namespace nil
-#endif    // CRYPTO3_MARSHALLING_BASIC_INTEGRAL_HPP
+#endif    // CRYPTO3_MARSHALLING_BASIC_INTEGRAL_DEFINITION_HPP
