@@ -156,8 +156,19 @@ namespace nil {
                 void write_little_endian(T value, TIter &iter) {
                     std::size_t units_bits = 8;
                     std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
+                    std::size_t chunks_count = 
+                        (TSize / chunk_bits) + 
+                        ((TSize % chunk_bits)?1:0);
 
-                    export_bits(value, iter, chunk_bits / units_bits, false);
+                    std::size_t end_index = chunks_count - 
+                        ((nil::crypto3::multiprecision::msb(value) + 1)/chunk_bits + 
+                            (((nil::crypto3::multiprecision::msb(value) + 1) % chunk_bits)?1:0));
+
+                    if (end_index < chunks_count){
+                        std::fill(iter + end_index, iter + chunks_count, 0x00);
+                    }
+                    
+                    export_bits(value, iter, chunk_bits, false);
                 }
 
                 /// @brief Read integral value from the input area using little
@@ -200,7 +211,7 @@ namespace nil {
                         ((TSize % chunk_bits)?1:0);
 
                     multiprecision::import_bits(serializedValue, 
-                        iter, iter + TSize, chunk_bits, false);
+                        iter, iter + chunks_count, chunk_bits, false);
                     return serializedValue;
                 }
 

@@ -124,11 +124,53 @@ void test_round_trip_fixed_precision_big_endian(T val) {
     test_val_byteblob.resize(cv.size());
     auto write_iter = test_val_byteblob.begin();
 
-    status = test_val.write(write_iter, test_val_byteblob.size());
+    status = test_val.write(write_iter, 
+        test_val_byteblob.size() * units_bits);
 	BOOST_CHECK(status == 
         nil::marshalling::status_type::success);
 
 	BOOST_CHECK(cv == test_val_byteblob);
+}
+
+
+template<class T>
+void test_round_trip_fixed_precision_little_endian(T val) {
+    using namespace nil::crypto3::marshalling;
+    std::size_t units_bits = 8;
+    using unit_type = unsigned char;
+    using integral_type = types::integral<
+        nil::marshalling::field_type<
+        nil::marshalling::option::little_endian>,
+        T>;
+    std::size_t unitblob_size = 
+        integral_type::length()/units_bits + 
+        ((integral_type::length()%units_bits)?1:0);
+    integral_type test_val;
+
+    std::vector<unit_type> cv;
+
+    export_bits(val, std::back_inserter(cv),
+        units_bits, false);
+    cv.resize(unitblob_size, 0x00);
+
+    auto read_iter = cv.begin();
+    nil::marshalling::status_type status = 
+        test_val.read(read_iter, cv.size() * units_bits);
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+    BOOST_CHECK(val == test_val.value());
+
+    std::vector<unit_type> test_val_byteblob;
+    test_val_byteblob.resize(cv.size());
+    auto write_iter = test_val_byteblob.begin();
+
+    status = test_val.write(write_iter, 
+        test_val_byteblob.size() * units_bits);
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+    BOOST_CHECK(cv == test_val_byteblob);
 }
 
 template<class T>
@@ -138,60 +180,98 @@ void test_round_trip_fixed_precision() {
     for (unsigned i = 0; i < 1000; ++i) {
         T val = generate_random<T>();
         test_round_trip_fixed_precision_big_endian(val);
+        test_round_trip_fixed_precision_little_endian(val);
     }
 }
 
-// template<class T>
-// void test_array_list(T val, T val2, T val3, T val4, T val5) {
-//     using namespace nil::crypto3::marshalling;
+template<class T>
+void test_round_trip_non_fixed_precision_big_endian(T val) {
+    using namespace nil::crypto3::marshalling;
 
-//     using integral_type = types::integral<nil::marshalling::field_type<
-//         nil::marshalling::option::little_endian>,
-//         T>;
-//     using array_type = nil::marshalling::types::array_list<
-//         field_type<option::big_endian>, integral_type>;
+    std::size_t units_bits = 8;
+    using unit_type = unsigned char;
+    using integral_type = types::integral<
+        nil::marshalling::field_type<
+        nil::marshalling::option::big_endian>,
+        T>;
 
-//     std::vector<unsigned char> cv;
-//     export_bits(val, std::back_inserter(cv), 8);
+    integral_type test_val;
 
-//     auto read_iter = cv.begin();
-//     nil::marshalling::status_type status = 
-//         test_val.read(read_iter, cv.size());
-//     BOOST_CHECK(status == 
-//         nil::marshalling::status_type::success);
+    std::vector<unit_type> cv;
+    export_bits(val, std::back_inserter(cv), units_bits, true);
 
-//     BOOST_CHECK(val == test_val.value());
+    auto read_iter = cv.begin();
+    nil::marshalling::status_type status = 
+        test_val.read(read_iter, cv.size() * units_bits);
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
 
-//     std::vector<unsigned char> test_val_byteblob;
-//     test_val_byteblob.resize(cv.size());
-//     auto write_iter = test_val_byteblob.begin();
+    BOOST_CHECK(val == test_val.value());
 
-//     status = test_val.write(write_iter, test_val_byteblob.size());
-//     BOOST_CHECK(status == 
-//         nil::marshalling::status_type::success);
+    std::vector<unit_type> test_val_byteblob;
+    test_val_byteblob.resize(cv.size());
+    auto write_iter = test_val_byteblob.begin();
 
-//     BOOST_CHECK(cv == test_val_byteblob);
-// }
+    status = test_val.write(write_iter, 
+            test_val_byteblob.size() * units_bits);
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+    BOOST_CHECK(cv == test_val_byteblob);
+}
 
 template<class T>
-void test_array_list() {
+void test_round_trip_non_fixed_precision_little_endian(T val) {
+    using namespace nil::crypto3::marshalling;
+
+    std::size_t units_bits = 8;
+    using unit_type = unsigned char;
+    using integral_type = types::integral<
+        nil::marshalling::field_type<
+        nil::marshalling::option::little_endian>,
+        T>;
+
+    integral_type test_val;
+
+    std::vector<unsigned char> cv;
+    export_bits(val, std::back_inserter(cv), units_bits, false);
+
+    auto read_iter = cv.begin();
+    nil::marshalling::status_type status = 
+        test_val.read(read_iter, cv.size() * units_bits);
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+    BOOST_CHECK(val == test_val.value());
+
+    std::vector<unsigned char> test_val_byteblob;
+    test_val_byteblob.resize(cv.size());
+    auto write_iter = test_val_byteblob.begin();
+
+    status = test_val.write(write_iter, 
+        test_val_byteblob.size() * units_bits);
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+    BOOST_CHECK(cv == test_val_byteblob);
+}
+
+template<class T>
+void test_round_trip_non_fixed_precision() {
     std::cout << std::hex;
     std::cerr << std::hex;
     for (unsigned i = 0; i < 1000; ++i) {
-        T val1 = generate_random<T>();
-        T val2 = generate_random<T>();
-        T val3 = generate_random<T>();
-        T val4 = generate_random<T>();
-        T val5 = generate_random<T>();
-        test_array_list(val1, val2, val3, val4, val5);
+        T val = generate_random<T>();
+        test_round_trip_non_fixed_precision_big_endian(val);
+        test_round_trip_non_fixed_precision_little_endian(val);
     }
 }
 
 BOOST_AUTO_TEST_SUITE(integral_test_suite)
 
-// BOOST_AUTO_TEST_CASE(integral_cpp_int) {
-// 	test_round_trip_non_fixed_precision<nil::crypto3::multiprecision::cpp_int>();
-// }
+BOOST_AUTO_TEST_CASE(integral_cpp_int) {
+	test_round_trip_non_fixed_precision<nil::crypto3::multiprecision::cpp_int>();
+}
 
 BOOST_AUTO_TEST_CASE(integral_checked_int1024) {
     test_round_trip_fixed_precision<nil::crypto3::multiprecision::checked_int1024_t>();
