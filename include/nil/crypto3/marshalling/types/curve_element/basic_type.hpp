@@ -23,8 +23,8 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#ifndef CRYPTO3_MARSHALLING_BASIC_INTEGRAL_NON_FIXED_PRECISION_HPP
-#define CRYPTO3_MARSHALLING_BASIC_INTEGRAL_NON_FIXED_PRECISION_HPP
+#ifndef CRYPTO3_MARSHALLING_BASIC_CURVE_ELEMENT_HPP
+#define CRYPTO3_MARSHALLING_BASIC_CURVE_ELEMENT_HPP
 
 #include <type_traits>
 
@@ -34,8 +34,9 @@
 
 #include <nil/crypto3/multiprecision/number.hpp>
 #include <nil/crypto3/multiprecision/cpp_int.hpp>
+#include <nil/crypto3/multiprecision/traits/max_digits10.hpp>
 
-#include <nil/crypto3/marshalling/processing/integral.hpp>
+#include <nil/crypto3/marshalling/processing/access.hpp>
 #include <nil/crypto3/marshalling/types/integral/basic_type.hpp>
 
 namespace nil {
@@ -45,13 +46,12 @@ namespace nil {
                 namespace detail {
 
                     template<typename TTypeBase, 
-                             typename Backend,
-                             multiprecision::expression_template_option ExpressionTemplates>
+                             typename CurveGroupType>
                     class basic_integral<TTypeBase, 
-                                         Backend,
-                                         ExpressionTemplates,
-                                         false> : public TTypeBase {
-                        using T = multiprecision::number<Backend, ExpressionTemplates>;
+                                         CurveGroupType> : public TTypeBase {
+
+                        using backend_type = Backend;
+                        using T = typename CurveGroupType::value_type;
 
                         using base_impl_type = TTypeBase;
 
@@ -83,15 +83,15 @@ namespace nil {
                         }
 
                         static constexpr std::size_t length() {
-                            return sizeof(serialized_type);
+                            return max_length();
                         }
 
                         static constexpr std::size_t min_length() {
-                            return length();
+                            return max_length();
                         }
 
                         static constexpr std::size_t max_length() {
-                            return length();
+                            return underlying_field_type::value_bits;
                         }
 
                         static constexpr serialized_type to_serialized(value_type val) {
@@ -104,40 +104,35 @@ namespace nil {
 
                         template<typename TIter>
                         nil::marshalling::status_type read(TIter &iter, std::size_t size) {
-                            // if (size < length()) {
-                            //     return nil::marshalling::status_type::not_enough_data;
-                            // }
+                            if (size < length()) {
+                                return nil::marshalling::status_type::not_enough_data;
+                            }
 
-                            read_no_status(iter, size);
+                            read_no_status(iter);
                             return nil::marshalling::status_type::success;
                         }
 
                         template<typename TIter>
                         void read_no_status(TIter &iter) {
-                            read_no_status(length());
-                        }
-                    private:
-                        template<typename TIter>
-                        void read_no_status(TIter &iter, std::size_t size) {
                             value_ = crypto3::marshalling::
-                                processing::read_data<T>(iter, size,
+                                processing::curve_element_read_data<length(), value_type>(iter,
                                     typename base_impl_type::endian_type());
                         }
-                    public:
+                    
                         template<typename TIter>
                         nil::marshalling::status_type write(TIter &iter, std::size_t size) const {
-                            // if (size < length()) {
-                            //     return nil::marshalling::status_type::buffer_overflow;
-                            // }
+                            if (size < length()) {
+                                return nil::marshalling::status_type::buffer_overflow;
+                            }
 
-                            write_no_status(iter);
+                            write_no_status(iter);  
                             return nil::marshalling::status_type::success;
                         }
 
                         template<typename TIter>
                         void write_no_status(TIter &iter) const {
                             crypto3::marshalling::processing::
-                                write_data<T>(value_, iter, 
+                                curve_element_write_data<length()>(value_, iter, 
                                     typename base_impl_type::endian_type());
                         }
 
@@ -150,4 +145,4 @@ namespace nil {
         }            // namespace marshalling
     }            // namespace crypto3
 }    // namespace nil
-#endif    // CRYPTO3_MARSHALLING_BASIC_INTEGRAL_NON_FIXED_PRECISION_HPP
+#endif    // CRYPTO3_MARSHALLING_BASIC_CURVE_ELEMENT_HPP

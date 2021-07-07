@@ -23,93 +23,48 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#ifndef CRYPTO3_MARSHALLING_INTEGRAL_HPP
-#define CRYPTO3_MARSHALLING_INTEGRAL_HPP
+#ifndef CRYPTO3_MARSHALLING_CURVE_ELEMENT_HPP
+#define CRYPTO3_MARSHALLING_CURVE_ELEMENT_HPP
 
 #include <ratio>
 #include <limits>
 #include <type_traits>
-
-#include <boost/type_traits/is_integral.hpp>
-
-#include <nil/crypto3/multiprecision/number.hpp>
 
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/options.hpp>
 #include <nil/marshalling/types/detail/adapt_basic_field.hpp>
 #include <nil/marshalling/types/tag.hpp>
 
-#include <nil/crypto3/marshalling/types/integral/basic_fixed_precision_type.hpp>
-#include <nil/crypto3/marshalling/types/integral/basic_non_fixed_precision_type.hpp>
+#include <nil/crypto3/multiprecision/number.hpp>
 
+#include <nil/crypto3/marshalling/types/curve_element/basic_type.hpp>
 namespace nil {
     namespace crypto3 {
         namespace marshalling {
             namespace types {
 
-                /// @brief field_type that represent integral value.
-                /// @tparam TTypeBase Base class for this field, expected to be a variant of
-                ///     nil::marshalling::field_type.
-                /// @tparam T Basic underlying integral type.
-                /// @tparam TOptions Zero or more options that modify/refine default behaviour
-                ///     of the field. If no option is provided The field's value is serialized as is.
-                ///     @code
-                ///         using MyFieldBase = nil::marshalling::field_type<nil::marshalling::option::BigEndian>;
-                ///
-                ///         constexpr static const std::size_t modulus_bits = 381;
-                ///         using modulus_type = nil::crypto3::multiprecision::number<nil::crypto3::multiprecision::backends::cpp_int_backend<
-                ///            modulus_bits, modulus_bits, nil::crypto3::multiprecision::unsigned_magnitude,
-                ///            nil::crypto3::multiprecision::unchecked, void>>;
-                ///         using MyField = nil::crypto3::marshalling::types::integral<MyFieldBase, modulus_type>;
-                ///     @endcode
-                ///     In the example above it will
-                ///     consume ?? bytes (because sizeof(modulus_type) == ??) and will
-                ///     be serialized using big endian notation.@n
-                ///     Supported options are:
-                ///     @li @ref nil::marshalling::option::var_length
-                ///     @li @ref nil::marshalling::option::num_value_ser_offset
-                ///     @li @ref nil::marshalling::option::default_value_initializer or
-                ///     nil::marshalling::option::default_num_value.
-                ///     @li @ref nil::marshalling::option::contents_validator
-                ///     @li @ref nil::marshalling::option::valid_num_value_range, @ref nil::marshalling::option::ValidNumValue,
-                ///         @ref nil::marshalling::option::ValidBigUnsignedNumValueRange, @ref
-                ///         nil::marshalling::option::ValidBigUnsignedNumValue
-                ///     @li @ref nil::marshalling::option::valid_ranges_clear
-                ///     @li @ref nil::marshalling::option::contents_refresher
-                ///     @li @ref nil::marshalling::option::has_custom_read
-                ///     @li @ref nil::marshalling::option::has_custom_refresh
-                ///     @li @ref nil::marshalling::option::fail_on_invalid
-                ///     @li @ref nil::marshalling::option::ignore_invalid
-                ///     @li @b nil::marshalling::option::Units* - all variants of value units, see
-                ///         @ref sec_field_tutorial_integral_units for details.
-                ///     @li nil::marshalling::option::empty_serialization
-                ///     @li @ref nil::marshalling::option::invalid_by_default
-                ///     @li @ref nil::marshalling::option::version_storage
-                /// @extends nil::marshalling::field_type
-                /// @headerfile nil/marshalling/types/integral.hpp
                 template<typename TTypeBase, 
-                         typename IntegralContainer, 
+                         typename CurveGroupType, 
                          typename... TOptions>
-                class integral;
+                class curve_element;
 
                 template<typename TTypeBase, 
-                         typename Backend,
-                         multiprecision::expression_template_option ExpressionTemplates, 
+                         typename CurveGroupType, 
                          typename... TOptions>
-                class integral<TTypeBase, 
-                               multiprecision::number<Backend, ExpressionTemplates>,
+                class curve_element<TTypeBase, 
+                               CurveGroupType,
                                TOptions...> : 
                     private ::nil::marshalling::types::detail::adapt_basic_field_type<
-                        crypto3::marshalling::types::detail::basic_integral<TTypeBase, 
-                                               Backend,
-                                               ExpressionTemplates>, 
+                        crypto3::marshalling::types::detail::basic_curve_element<TTypeBase, 
+                                               CurveGroupType>, 
                         TOptions...> {
+
+                    using curve_group_type = CurveGroupType;
 
                     using base_impl_type = 
                         ::nil::marshalling::types::detail::adapt_basic_field_type<
-                            crypto3::marshalling::types::detail::basic_integral<TTypeBase, 
-                                               Backend,
-                                               ExpressionTemplates>, 
+                            crypto3::marshalling::types::detail::basic_curve_element<TTypeBase, 
+                                               curve_group_type>, 
                             TOptions...>;
 
                 public:
@@ -124,35 +79,35 @@ namespace nil {
                         ::nil::marshalling::types::detail::options_parser<TOptions...>;
 
                     /// @brief Tag indicating type of the field
-                    using tag = ::nil::marshalling::types::tag::integral;
+                    using tag = ::nil::marshalling::types::tag::curve_element;
 
-                    /// @brief Type of underlying integral value.
+                    /// @brief Type of underlying curve_element value.
                     /// @details Same as template parameter T to this class.
                     using value_type = typename base_impl_type::value_type;
 
                     /// @brief Default constructor
                     /// @details Initialises internal value to 0.
-                    integral() = default;
+                    curve_element() = default;
 
                     /// @brief Constructor
-                    explicit integral(const value_type &val) : base_impl_type(val) {
+                    explicit curve_element(const value_type &val) : base_impl_type(val) {
                     }
 
                     /// @brief Copy constructor
-                    integral(const integral &) = default;
+                    curve_element(const curve_element &) = default;
 
                     /// @brief Destructor
-                    ~integral() noexcept = default;
+                    ~curve_element() noexcept = default;
 
                     /// @brief Copy assignment
-                    integral &operator=(const integral &) = default;
+                    curve_element &operator=(const curve_element &) = default;
 
-                    /// @brief Get access to integral value storage.
+                    /// @brief Get access to curve_element value storage.
                     const value_type &value() const {
                         return base_impl_type::value();
                     }
 
-                    /// @brief Get access to integral value storage.
+                    /// @brief Get access to curve_element value storage.
                     value_type &value() {
                         return base_impl_type::value();
                     }
@@ -253,82 +208,81 @@ namespace nil {
                     // incompatible with crypto3::multiprecision
                     static_assert(!parsed_options_type::has_fixed_length_limit,
                                   "nil::marshalling::option::fixed_length option is not applicable to "
-                                  "crypto3::integral type");
+                                  "crypto3::curve_element type");
 
                     // because such an adapter uses pure byte reading, 
                     // incompatible with crypto3::multiprecision
                     static_assert(!parsed_options_type::has_fixed_bit_length_limit,
                                   "nil::marshalling::option::fixed_bit_length option is not applicable to "
-                                  "crypto3::integral type");
+                                  "crypto3::curve_element type");
 
                     static_assert(!parsed_options_type::has_scaling_ratio,
                                   "nil::marshalling::option::scaling_ratio option is not applicable to "
-                                  "crypto3::integral type");
+                                  "crypto3::curve_element type");
 
                     static_assert(!parsed_options_type::has_sequence_elem_length_forcing,
                                   "nil::marshalling::option::SequenceElemLengthForcingEnabled option is not applicable to "
-                                  "crypto3::integral type");
+                                  "crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_sequence_size_forcing,
-                        "nil::marshalling::option::SequenceSizeForcingEnabled option is not applicable to crypto3::integral type");
+                        "nil::marshalling::option::SequenceSizeForcingEnabled option is not applicable to crypto3::curve_element type");
                     static_assert(!parsed_options_type::has_sequence_length_forcing,
                                   "nil::marshalling::option::SequenceLengthForcingEnabled option is not applicable to "
-                                  "crypto3::integral type");
+                                  "crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_sequence_fixed_size,
-                        "nil::marshalling::option::sequence_fixed_size option is not applicable to crypto3::integral type");
+                        "nil::marshalling::option::sequence_fixed_size option is not applicable to crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_sequence_fixed_size_use_fixed_size_storage,
                         "nil::marshalling::option::SequenceFixedSizeUseFixedSizeStorage option is not applicable to "
-                        "crypto3::integral type");
+                        "crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_sequence_size_field_prefix,
-                        "nil::marshalling::option::sequence_size_field_prefix option is not applicable to crypto3::integral type");
+                        "nil::marshalling::option::sequence_size_field_prefix option is not applicable to crypto3::curve_element type");
                     static_assert(!parsed_options_type::has_sequence_ser_length_field_prefix,
                                   "nil::marshalling::option::sequence_ser_length_field_prefix option is not applicable to "
-                                  "crypto3::integral type");
+                                  "crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_sequence_elem_ser_length_field_prefix,
                         "nil::marshalling::option::sequence_elem_ser_length_field_prefix option is not applicable to "
-                        "crypto3::integral type");
+                        "crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_sequence_elem_fixed_ser_length_field_prefix,
                         "nil::marshalling::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to "
-                        "crypto3::integral type");
+                        "crypto3::curve_element type");
                     static_assert(!parsed_options_type::has_sequence_trailing_field_suffix,
                                   "nil::marshalling::option::sequence_trailing_field_suffix option is not applicable to "
-                                  "crypto3::integral type");
+                                  "crypto3::curve_element type");
                     static_assert(!parsed_options_type::has_sequence_termination_field_suffix,
                                   "nil::marshalling::option::sequence_termination_field_suffix option is not applicable to "
-                                  "crypto3::integral type");
+                                  "crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_fixed_size_storage,
-                        "nil::marshalling::option::fixed_size_storage option is not applicable to crypto3::integral type");
+                        "nil::marshalling::option::fixed_size_storage option is not applicable to crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_custom_storage_type,
-                        "nil::marshalling::option::custom_storage_type option is not applicable to crypto3::integral type");
+                        "nil::marshalling::option::custom_storage_type option is not applicable to crypto3::curve_element type");
                     static_assert(!parsed_options_type::has_orig_data_view,
-                                  "nil::marshalling::option::orig_data_view option is not applicable to crypto3::integral type");
+                                  "nil::marshalling::option::orig_data_view option is not applicable to crypto3::curve_element type");
                     static_assert(
                         !parsed_options_type::has_versions_range,
                         "nil::marshalling::option::exists_between_versions (or similar) option is not applicable to "
-                        "crypto3::integral type");
+                        "crypto3::curve_element type");
                 };
 
                 /// @brief Equality comparison operator.
                 /// @param[in] field1 First field.
                 /// @param[in] field2 Second field.
                 /// @return true in case fields are equal, false otherwise.
-                /// @related integral
+                /// @related curve_element
                 template<typename TTypeBase, 
-                         typename Backend,
-                         multiprecision::expression_template_option ExpressionTemplates, 
+                         typename CurveGroupType, 
                          typename... TOptions>
-                bool operator==(const integral<TTypeBase, 
-                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                bool operator==(const curve_element<TTypeBase, 
+                                               CurveGroupType, 
                                                TOptions...> &field1,
-                                const integral<TTypeBase, 
-                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                                const curve_element<TTypeBase, 
+                                               CurveGroupType, 
                                                TOptions...> &field2) {
                     return field1.value() == field2.value();
                 }
@@ -337,16 +291,15 @@ namespace nil {
                 /// @param[in] field1 First field.
                 /// @param[in] field2 Second field.
                 /// @return true in case fields are NOT equal, false otherwise.
-                /// @related integral
+                /// @related curve_element
                 template<typename TTypeBase, 
-                         typename Backend,
-                         multiprecision::expression_template_option ExpressionTemplates, 
+                         typename CurveGroupType, 
                          typename... TOptions>
-                bool operator!=(const integral<TTypeBase, 
-                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                bool operator!=(const curve_element<TTypeBase, 
+                                               CurveGroupType, 
                                                TOptions...> &field1,
-                                const integral<TTypeBase, 
-                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                                const curve_element<TTypeBase, 
+                                               CurveGroupType, 
                                                TOptions...> &field2) {
                     return field1.value() != field2.value();
                 }
@@ -355,47 +308,44 @@ namespace nil {
                 /// @param[in] field1 First field.
                 /// @param[in] field2 Second field.
                 /// @return true in case value of the first field is lower than than the value of the second.
-                /// @related integral
+                /// @related curve_element
                 template<typename TTypeBase, 
-                         typename Backend,
-                         multiprecision::expression_template_option ExpressionTemplates, 
+                         typename CurveGroupType, 
                          typename... TOptions>
-                bool operator<(const integral<TTypeBase, 
-                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                bool operator<(const curve_element<TTypeBase, 
+                                               CurveGroupType, 
                                                TOptions...> &field1,
-                               const integral<TTypeBase, 
-                                               multiprecision::number<Backend, ExpressionTemplates>, 
+                               const curve_element<TTypeBase, 
+                                               CurveGroupType, 
                                                TOptions...> &field2) {
                     return field1.value() < field2.value();
                 }
 
-                /// @brief Upcast type of the field definition to its parent nil::marshalling::types::integral type
+                /// @brief Upcast type of the field definition to its parent nil::marshalling::types::curve_element type
                 ///     in order to have access to its internal types.
-                /// @related nil::marshalling::types::integral
+                /// @related nil::marshalling::types::curve_element
                 template<typename TTypeBase, 
-                         typename Backend,
-                         multiprecision::expression_template_option ExpressionTemplates, 
+                         typename CurveGroupType, 
                          typename... TOptions>
-                inline integral<TTypeBase, 
-                                multiprecision::number<Backend, ExpressionTemplates>, 
-                                TOptions...> &to_field_base(integral<TTypeBase, 
-                                multiprecision::number<Backend, ExpressionTemplates>, 
+                inline curve_element<TTypeBase, 
+                                CurveGroupType, 
+                                TOptions...> &to_field_base(curve_element<TTypeBase, 
+                                CurveGroupType, 
                                 TOptions...> &field) {
                     return field;
                 }
 
-                /// @brief Upcast type of the field definition to its parent nil::marshalling::types::integral type
+                /// @brief Upcast type of the field definition to its parent nil::marshalling::types::curve_element type
                 ///     in order to have access to its internal types.
-                /// @related nil::marshalling::types::integral
+                /// @related nil::marshalling::types::curve_element
                 template<typename TTypeBase, 
-                         typename Backend,
-                         multiprecision::expression_template_option ExpressionTemplates, 
+                         typename CurveGroupType, 
                          typename... TOptions>
-                inline const integral<TTypeBase, 
-                                      multiprecision::number<Backend, ExpressionTemplates>, 
+                inline const curve_element<TTypeBase, 
+                                      CurveGroupType, 
                                       TOptions...> &
-                    to_field_base(const integral<TTypeBase, 
-                                      multiprecision::number<Backend, ExpressionTemplates>, 
+                    to_field_base(const curve_element<TTypeBase, 
+                                      CurveGroupType, 
                                       TOptions...> &field) {
                     return field;
                 }
@@ -404,4 +354,4 @@ namespace nil {
         }        // namespace marshalling
     }        // namespace crypto3
 }    // namespace nil
-#endif    // CRYPTO3_MARSHALLING_INTEGRAL_HPP
+#endif    // CRYPTO3_MARSHALLING_CURVE_ELEMENT_HPP

@@ -38,7 +38,7 @@ namespace nil {
             namespace types {
                 namespace detail {
 
-                    template<typename TFieldBase, 
+                    template<typename TTypeBase, 
                              typename Backend,
                              multiprecision::expression_template_option ExpressionTemplates,
                              bool IsFixedPrecision = 

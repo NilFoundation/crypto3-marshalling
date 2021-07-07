@@ -36,7 +36,7 @@
 #include <nil/crypto3/multiprecision/cpp_int.hpp>
 #include <nil/crypto3/multiprecision/traits/max_digits10.hpp>
 
-#include <nil/crypto3/marshalling/processing/access.hpp>
+#include <nil/crypto3/marshalling/processing/integral.hpp>
 #include <nil/crypto3/marshalling/types/integral/basic_type.hpp>
 
 namespace nil {
@@ -45,18 +45,18 @@ namespace nil {
             namespace types {
                 namespace detail {
 
-                    template<typename TFieldBase, 
+                    template<typename TTypeBase, 
                              typename Backend,
                              multiprecision::expression_template_option ExpressionTemplates>
-                    class basic_integral<TFieldBase, 
+                    class basic_integral<TTypeBase, 
                                          Backend,
                                          ExpressionTemplates,
-                                         true> : public TFieldBase {
+                                         true> : public TTypeBase {
 
                         using backend_type = Backend;
                         using T = multiprecision::number<backend_type, ExpressionTemplates>;
 
-                        using base_impl_type = TFieldBase;
+                        using base_impl_type = TTypeBase;
 
                     public:
                         using value_type = T;
@@ -111,9 +111,9 @@ namespace nil {
 
                         template<typename TIter>
                         nil::marshalling::status_type read(TIter &iter, std::size_t size) {
-                            // if (size < length()) {
-                            //     return nil::marshalling::status_type::not_enough_data;
-                            // }
+                            if (size < length()) {
+                                return nil::marshalling::status_type::not_enough_data;
+                            }
 
                             read_no_status(iter);
                             return nil::marshalling::status_type::success;
@@ -128,9 +128,9 @@ namespace nil {
                     
                         template<typename TIter>
                         nil::marshalling::status_type write(TIter &iter, std::size_t size) const {
-                            // if (size < length()) {
-                            //     return nil::marshalling::status_type::buffer_overflow;
-                            // }
+                            if (size < length()) {
+                                return nil::marshalling::status_type::buffer_overflow;
+                            }
 
                             write_no_status(iter);  
                             return nil::marshalling::status_type::success;

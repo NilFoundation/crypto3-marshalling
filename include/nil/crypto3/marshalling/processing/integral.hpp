@@ -23,8 +23,8 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#ifndef CRYPTO3_MARSHALLING_PROCESSING_ACCESS_HPP
-#define CRYPTO3_MARSHALLING_PROCESSING_ACCESS_HPP
+#ifndef CRYPTO3_MARSHALLING_PROCESSING_INTERGRAL_HPP
+#define CRYPTO3_MARSHALLING_PROCESSING_INTERGRAL_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -287,4 +287,4 @@ namespace nil {
         }    // namespace marshalling
     }    // namespace crypto3
 }    // namespace nil
-#endif    // CRYPTO3_MARSHALLING_PROCESSING_ACCESS_HPP
+#endif    // CRYPTO3_MARSHALLING_PROCESSING_INTERGRAL_HPP
