@@ -42,7 +42,8 @@ macro(define_marshalling_test name)
 endmacro()
 
 set(TESTS_NAMES
-    "integral")
+    "integral"
+    "integral_fixed_size_container")
 
 foreach(TEST_NAME ${TESTS_NAMES})
     define_marshalling_test(${TEST_NAME})
