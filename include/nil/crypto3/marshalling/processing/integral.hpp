@@ -216,70 +216,110 @@ namespace nil {
                 }
 
                 /// @brief Same as write_big_endian<T, TIter>()
-                template<typename T, typename TIter>
-                void write_data(T value, TIter &iter, 
-                    const nil::marshalling::endian::big_endian &endian) {
-                    static_cast<void>(endian);
+                template<typename T, 
+                         typename Endianness,
+                         typename TIter>
+                typename std::enable_if<
+                    std::is_same<Endianness, 
+                                 nil::marshalling::endian::big_endian>::value, 
+                    void>::type
+                    write_data(T value, TIter &iter) {
+                    
                     write_big_endian(value, iter);
                 }
 
                 /// @brief Same as write_big_endian<TSize, T, TIter>()
-                template<std::size_t TSize, typename T, typename TIter>
-                void write_data(T value, TIter &iter, 
-                    const nil::marshalling::endian::big_endian &endian) {
-                    static_cast<void>(endian);
+                template<std::size_t TSize, 
+                         typename Endianness,
+                         typename T, 
+                         typename TIter>
+                typename std::enable_if<
+                    std::is_same<Endianness, 
+                                 nil::marshalling::endian::big_endian>::value, 
+                    void>::type
+                    write_data(T value, TIter &iter) {
+                    
                     write_big_endian<TSize>(value, iter);
                 }
 
                 /// @brief Same as write_little_endian<T, TIter>()
-                template<typename T, typename TIter>
-                void write_data(T value, TIter &iter, 
-                    const nil::marshalling::endian::little_endian &endian) {
-                    static_cast<void>(endian);
+                template<typename T, 
+                         typename Endianness, 
+                         typename TIter>
+                typename std::enable_if<
+                    std::is_same<Endianness, 
+                                 nil::marshalling::endian::little_endian>::value, 
+                    void>::type
+                    write_data(T value, TIter &iter) {
+                    
                     write_little_endian(value, iter);
                 }
 
                 /// @brief Same as write_little_endian<TSize, T, TIter>()
-                template<std::size_t TSize, typename T, typename TIter>
-                void write_data(T value, TIter &iter, 
-                    const nil::marshalling::endian::little_endian &endian) {
-                    static_cast<void>(endian);
+                template<std::size_t TSize, 
+                         typename Endianness,
+                         typename T, 
+                         typename TIter>
+                typename std::enable_if<
+                    std::is_same<Endianness, 
+                                 nil::marshalling::endian::little_endian>::value, 
+                    void>::type
+                    write_data(T value, TIter &iter) {
+                    
                     write_little_endian<TSize>(value, iter);
                 }
 
                 /// @brief Same as read_big_endian<T, TIter>()
-                template<typename T, typename TIter>
-                T read_data(TIter &iter, std::size_t value_size, 
-                    const nil::marshalling::endian::big_endian &endian) {
+                template<typename T, 
+                         typename Endianness,
+                         typename TIter>
+                typename std::enable_if<
+                    std::is_same<Endianness, 
+                                 nil::marshalling::endian::big_endian>::value, 
+                    T>::type
+                    read_data(TIter &iter, std::size_t value_size) {
 
-                    static_cast<void>(endian);
                     return read_big_endian<T>(iter, value_size);
                 }
 
-                /// @brief Same as read_big_endian<TSize, T, TIter>()
-                template<std::size_t TSize, typename T, typename TIter>
-                T read_data(TIter &iter, 
-                    const nil::marshalling::endian::big_endian &endian) {
-
-                    static_cast<void>(endian);
-                    return read_big_endian<TSize, T>(iter);
-                }
-
                 /// @brief Same as read_little_endian<T, TIter>()
-                template<typename T, typename TIter>
-                T read_data(TIter &iter, std::size_t value_size, 
-                    const nil::marshalling::endian::little_endian &endian) {
+                template<typename T, 
+                         typename Endianness,
+                         typename TIter>
+                typename std::enable_if<
+                    std::is_same<Endianness, 
+                                 nil::marshalling::endian::little_endian>::value, 
+                    T>::type
+                    read_data(TIter &iter, std::size_t value_size) {
 
-                    static_cast<void>(endian);
                     return read_little_endian<T>(iter, value_size);
                 }
 
-                /// @brief Same as read_little_endian<TSize, T, TIter>()
-                template<std::size_t TSize, typename T, typename TIter>
-                T read_data(TIter &iter, 
-                    const nil::marshalling::endian::little_endian &endian) {
+                /// @brief Same as read_big_endian<TSize, T, TIter>()
+                template<std::size_t TSize, 
+                         typename T,
+                         typename Endianness, 
+                         typename TIter>
+                typename std::enable_if<
+                    std::is_same<Endianness, 
+                                 nil::marshalling::endian::big_endian>::value, 
+                    T>::type
+                    read_data(TIter &iter) {
 
-                    static_cast<void>(endian);
+                    return read_big_endian<TSize, T>(iter);
+                }
+
+                /// @brief Same as read_little_endian<TSize, T, TIter>()
+                template<std::size_t TSize, 
+                         typename T,
+                         typename Endianness, 
+                         typename TIter>
+                typename std::enable_if<
+                    std::is_same<Endianness, 
+                                 nil::marshalling::endian::little_endian>::value, 
+                    T>::type
+                    read_data(TIter &iter) {
+
                     return read_little_endian<TSize, T>(iter);
                 }
 

@@ -99,8 +99,8 @@ void test_round_trip_fixed_precision_big_endian(T val) {
         nil::marshalling::option::big_endian>,
         T>;
     std::size_t unitblob_size = 
-        integral_type::length()/units_bits + 
-        ((integral_type::length()%units_bits)?1:0);
+        integral_type::bit_length()/units_bits + 
+        ((integral_type::bit_length()%units_bits)?1:0);
     integral_type test_val;
 
     std::vector<unit_type> cv;
@@ -143,8 +143,8 @@ void test_round_trip_fixed_precision_little_endian(T val) {
         nil::marshalling::option::little_endian>,
         T>;
     std::size_t unitblob_size = 
-        integral_type::length()/units_bits + 
-        ((integral_type::length()%units_bits)?1:0);
+        integral_type::bit_length()/units_bits + 
+        ((integral_type::bit_length()%units_bits)?1:0);
     integral_type test_val;
 
     std::vector<unit_type> cv;
