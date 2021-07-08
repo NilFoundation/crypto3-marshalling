@@ -16,6 +16,7 @@ endif()
 cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
                        ${Boost_LIBRARIES}
                        ${CMAKE_WORKSPACE_NAME}::multiprecision
+                       ${CMAKE_WORKSPACE_NAME}::algebra
                        nil::marshalling)
 
 macro(define_marshalling_test name)
@@ -43,7 +44,8 @@ endmacro()
 
 set(TESTS_NAMES
     "integral"
-    "integral_fixed_size_container")
+    "integral_fixed_size_container"
+    "curve_element")
 
 foreach(TEST_NAME ${TESTS_NAMES})
     define_marshalling_test(${TEST_NAME})

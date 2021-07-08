@@ -67,6 +67,7 @@ target_include_directories(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTER
 target_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTERFACE
                       ${Boost_LIBRARIES}
                       ${CMAKE_WORKSPACE_NAME}::multiprecision
+                      ${CMAKE_WORKSPACE_NAME}::algebra
                       nil::marshalling)
 
 cm_deploy(TARGETS ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}

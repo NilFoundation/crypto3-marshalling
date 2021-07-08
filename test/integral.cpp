@@ -33,7 +33,6 @@
 #include <iomanip>
 
 #include <nil/marshalling/status_type.hpp>
-// #include <nil/marshalling/types/array_list.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
 

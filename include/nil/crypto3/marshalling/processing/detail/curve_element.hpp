@@ -23,8 +23,8 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#ifndef CRYPTO3_MARSHALLING_PROCESSING_CURVE_ELEMENT_HPP
-#define CRYPTO3_MARSHALLING_PROCESSING_CURVE_ELEMENT_HPP
+#ifndef CRYPTO3_MARSHALLING_PROCESSING_CURVE_ELEMENT_DETAIL_HPP
+#define CRYPTO3_MARSHALLING_PROCESSING_CURVE_ELEMENT_DETAIL_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -33,6 +33,8 @@
 #include <iterator>
 
 #include <nil/marshalling/endianness.hpp>
+
+#include <nil/crypto3/algebra/type_traits.hpp>
 
 #include <nil/crypto3/marshalling/processing/integral.hpp>
 
@@ -44,8 +46,12 @@ namespace nil {
 
                     template<typename ChunkType,
                              typename GroupValueType>
-                    static inline std::uint8_t evaluate_m_unit(const GroupValueType &point, 
+                    static inline ChunkType evaluate_m_unit(const GroupValueType &point, 
                         bool compression) {
+
+                        constexpr static const ChunkType C_bit = 0x80;
+                        constexpr static const ChunkType I_bit = 0x40;
+                        constexpr static const ChunkType S_bit = 0x20;
 
                         ChunkType result = 0;
                         if (compression) {
@@ -61,11 +67,13 @@ namespace nil {
                     }
 
                     template<typename G1FieldElement>
-                    typename std::enable_if<is_g1_field_element<G1FieldElement>::value, bool>::type
+                    typename std::enable_if<
+                            algebra::is_field<G1FieldElement>::value &&
+                            !(algebra::is_extended_field<G1FieldElement>::value), bool>::type
                         sign_gf_p(const G1FieldElement &v) {
 
                         constexpr static const typename G1FieldElement::modulus_type half_p =
-                            (G1FieldElement::modulus - modulus_type(1)) / modulus_type(2);
+                            (G1FieldElement::modulus - typename G1FieldElement::modulus_type(1)) / typename G1FieldElement::modulus_type(2);
 
                         if (v > half_p) {
                             return true;
@@ -74,17 +82,19 @@ namespace nil {
                     }
 
                     template<typename G2FieldElement>
-                    typename std::enable_if<is_g2_field_element<G2FieldElement>::value, bool>::type
-                    static inline bool sign_gf_p(const g2_field_value_type &v) {
+                    typename std::enable_if<algebra::is_extended_field<G2FieldElement>::value, bool>::type
+                        sign_gf_p(const G2FieldElement &v) {
+                            
                         if (v.data[1] == 0) {
                             return sign_gf_p(v.data[0]);
                         }
                         return sign_gf_p(v.data[1]);
                     }
 
+
                 }    // namespace detail
             }    // namespace processing
         }    // namespace marshalling
     }    // namespace crypto3
 }    // namespace nil
-#endif    // CRYPTO3_MARSHALLING_PROCESSING_CURVE_ELEMENT_HPP
+#endif    // CRYPTO3_MARSHALLING_PROCESSING_CURVE_ELEMENT_DETAIL_HPP

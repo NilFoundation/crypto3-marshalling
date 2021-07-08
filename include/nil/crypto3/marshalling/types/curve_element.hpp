@@ -35,8 +35,6 @@
 #include <nil/marshalling/types/detail/adapt_basic_field.hpp>
 #include <nil/marshalling/types/tag.hpp>
 
-#include <nil/crypto3/multiprecision/number.hpp>
-
 #include <nil/crypto3/marshalling/types/curve_element/basic_type.hpp>
 namespace nil {
     namespace crypto3 {
@@ -46,14 +44,7 @@ namespace nil {
                 template<typename TTypeBase, 
                          typename CurveGroupType, 
                          typename... TOptions>
-                class curve_element;
-
-                template<typename TTypeBase, 
-                         typename CurveGroupType, 
-                         typename... TOptions>
-                class curve_element<TTypeBase, 
-                               CurveGroupType,
-                               TOptions...> : 
+                class curve_element : 
                     private ::nil::marshalling::types::detail::adapt_basic_field_type<
                         crypto3::marshalling::types::detail::basic_curve_element<TTypeBase, 
                                                CurveGroupType>, 
@@ -77,9 +68,6 @@ namespace nil {
                     /// @brief All the options provided to this class bundled into struct.
                     using parsed_options_type = 
                         ::nil::marshalling::types::detail::options_parser<TOptions...>;
-
-                    /// @brief Tag indicating type of the field
-                    using tag = ::nil::marshalling::types::tag::curve_element;
 
                     /// @brief Type of underlying curve_element value.
                     /// @details Same as template parameter T to this class.
@@ -205,13 +193,13 @@ namespace nil {
                 private:
 
                     // because such an adapter uses pure byte reading, 
-                    // incompatible with crypto3::multiprecision
+                    // incompatible with crypto3::curve_element
                     static_assert(!parsed_options_type::has_fixed_length_limit,
                                   "nil::marshalling::option::fixed_length option is not applicable to "
                                   "crypto3::curve_element type");
 
                     // because such an adapter uses pure byte reading, 
-                    // incompatible with crypto3::multiprecision
+                    // incompatible with crypto3::curve_element
                     static_assert(!parsed_options_type::has_fixed_bit_length_limit,
                                   "nil::marshalling::option::fixed_bit_length option is not applicable to "
                                   "crypto3::curve_element type");

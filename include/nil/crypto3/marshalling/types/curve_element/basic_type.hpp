@@ -28,16 +28,9 @@
 
 #include <type_traits>
 
-#include <boost/type_traits/is_integral.hpp>
-
 #include <nil/marshalling/status_type.hpp>
 
-#include <nil/crypto3/multiprecision/number.hpp>
-#include <nil/crypto3/multiprecision/cpp_int.hpp>
-#include <nil/crypto3/multiprecision/traits/max_digits10.hpp>
-
-#include <nil/crypto3/marshalling/processing/access.hpp>
-#include <nil/crypto3/marshalling/types/integral/basic_type.hpp>
+#include <nil/crypto3/marshalling/processing/curve_element.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -47,10 +40,8 @@ namespace nil {
 
                     template<typename TTypeBase, 
                              typename CurveGroupType>
-                    class basic_integral<TTypeBase, 
-                                         CurveGroupType> : public TTypeBase {
+                    class basic_curve_element : public TTypeBase {
 
-                        using backend_type = Backend;
                         using T = typename CurveGroupType::value_type;
 
                         using base_impl_type = TTypeBase;
@@ -59,20 +50,20 @@ namespace nil {
                         using value_type = T;
                         using serialized_type = value_type;
 
-                        basic_integral() = default;
+                        basic_curve_element() = default;
 
-                        explicit basic_integral(value_type val) : value_(val) {
+                        explicit basic_curve_element(value_type val) : value_(val) {
                         }
 
-                        basic_integral(const basic_integral &) = default;
+                        basic_curve_element(const basic_curve_element &) = default;
 
-                        basic_integral(basic_integral &&) = default;
+                        basic_curve_element(basic_curve_element &&) = default;
 
-                        ~basic_integral() noexcept = default;
+                        ~basic_curve_element() noexcept = default;
 
-                        basic_integral &operator=(const basic_integral &) = default;
+                        basic_curve_element &operator=(const basic_curve_element &) = default;
 
-                        basic_integral &operator=(basic_integral &&) = default;
+                        basic_curve_element &operator=(basic_curve_element &&) = default;
 
                         const value_type &value() const {
                             return value_;
@@ -91,7 +82,7 @@ namespace nil {
                         }
 
                         static constexpr std::size_t max_length() {
-                            return underlying_field_type::value_bits;
+                            return CurveGroupType::underlying_field_type::value_bits;
                         }
 
                         static constexpr serialized_type to_serialized(value_type val) {
