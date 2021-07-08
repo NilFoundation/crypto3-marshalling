@@ -29,7 +29,7 @@ macro(define_marshalling_test name)
                                ${Boost_INCLUDE_DIRS})
 
     set_target_properties(marshalling_${name}_test PROPERTIES
-                          CXX_STANDARD 11
+                          CXX_STANDARD 14
                           CXX_STANDARD_REQUIRED TRUE)
 
     if(TARGET Boost::unit_test_framework)
