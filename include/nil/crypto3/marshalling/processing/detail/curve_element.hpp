@@ -44,6 +44,32 @@ namespace nil {
             namespace processing {
                 namespace detail {
 
+                    template<typename G1FieldType>
+                    typename std::enable_if<
+                            algebra::is_field<G1FieldType>::value &&
+                            !(algebra::is_extended_field<G1FieldType>::value), bool>::type
+                        sign_gf_p(const typename G1FieldType::value_type &v) {
+
+                        constexpr static const typename G1FieldType::modulus_type half_p =
+                            (G1FieldType::modulus - typename G1FieldType::modulus_type(1)) / 
+                                typename G1FieldType::modulus_type(2);
+
+                        if (v > half_p) {
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    template<typename G2FieldType>
+                    typename std::enable_if<algebra::is_extended_field<G2FieldType>::value, bool>::type
+                        sign_gf_p(const typename G2FieldType::value_type &v) {
+                            
+                        if (v.data[1] == 0) {
+                            return sign_gf_p<typename G2FieldType::underlying_field_type>(v.data[0]);
+                        }
+                        return sign_gf_p<typename G2FieldType::underlying_field_type>(v.data[1]);
+                    }
+
                     template<typename ChunkType,
                              typename GroupValueType>
                     static inline ChunkType evaluate_m_unit(const GroupValueType &point, 
@@ -60,37 +86,11 @@ namespace nil {
                         // TODO: check condition of infinite point
                         if (point.Z.is_zero()) {
                             result |= I_bit;
-                        } else if (compression && sign_gf_p(point.Y)) {
+                        } else if (compression && sign_gf_p<typename GroupValueType::underlying_field_type>(point.Y)) {
                             result |= S_bit;
                         }
                         return result;
                     }
-
-                    template<typename G1FieldElement>
-                    typename std::enable_if<
-                            algebra::is_field<G1FieldElement>::value &&
-                            !(algebra::is_extended_field<G1FieldElement>::value), bool>::type
-                        sign_gf_p(const G1FieldElement &v) {
-
-                        constexpr static const typename G1FieldElement::modulus_type half_p =
-                            (G1FieldElement::modulus - typename G1FieldElement::modulus_type(1)) / typename G1FieldElement::modulus_type(2);
-
-                        if (v > half_p) {
-                            return true;
-                        }
-                        return false;
-                    }
-
-                    template<typename G2FieldElement>
-                    typename std::enable_if<algebra::is_extended_field<G2FieldElement>::value, bool>::type
-                        sign_gf_p(const G2FieldElement &v) {
-                            
-                        if (v.data[1] == 0) {
-                            return sign_gf_p(v.data[0]);
-                        }
-                        return sign_gf_p(v.data[1]);
-                    }
-
 
                 }    // namespace detail
             }    // namespace processing

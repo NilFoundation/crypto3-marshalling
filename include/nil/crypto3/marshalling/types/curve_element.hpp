@@ -106,6 +106,12 @@ namespace nil {
                         return base_impl_type::length();
                     }
 
+                    /// @brief Get length required to serialise the current field value.
+                    /// @return Number of bytes it will take to serialise the field value.
+                    static constexpr std::size_t  bit_length() {
+                        return base_impl_type::bit_length();
+                    }
+
                     /// @brief Get minimal length that is required to serialise field of this type.
                     /// @return Minimal number of bytes required serialise the field value.
                     static constexpr std::size_t min_length() {

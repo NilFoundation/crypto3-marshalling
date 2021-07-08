@@ -74,6 +74,11 @@ namespace nil {
                         }
 
                         static constexpr std::size_t length() {
+                            return max_length()/8 + 
+                            ((max_length()%8)?1:0);
+                        }
+
+                        static constexpr std::size_t bit_length() {
                             return max_length();
                         }
 
@@ -95,9 +100,9 @@ namespace nil {
 
                         template<typename TIter>
                         nil::marshalling::status_type read(TIter &iter, std::size_t size) {
-                            if (size < length()) {
-                                return nil::marshalling::status_type::not_enough_data;
-                            }
+                            // if (size < length()) {
+                            //     return nil::marshalling::status_type::not_enough_data;
+                            // }
 
                             read_no_status(iter);
                             return nil::marshalling::status_type::success;
@@ -106,15 +111,16 @@ namespace nil {
                         template<typename TIter>
                         void read_no_status(TIter &iter) {
                             value_ = crypto3::marshalling::
-                                processing::curve_element_read_data<length(), value_type>(iter,
-                                    typename base_impl_type::endian_type());
+                                processing::curve_element_read_data<bit_length(), 
+                                    typename base_impl_type::endian_type, 
+                                    value_type>(iter);
                         }
                     
                         template<typename TIter>
                         nil::marshalling::status_type write(TIter &iter, std::size_t size) const {
-                            if (size < length()) {
-                                return nil::marshalling::status_type::buffer_overflow;
-                            }
+                            // if (size < length()) {
+                            //     return nil::marshalling::status_type::buffer_overflow;
+                            // }
 
                             write_no_status(iter);  
                             return nil::marshalling::status_type::success;
@@ -123,12 +129,12 @@ namespace nil {
                         template<typename TIter>
                         void write_no_status(TIter &iter) const {
                             crypto3::marshalling::processing::
-                                curve_element_write_data<length()>(value_, iter, 
-                                    typename base_impl_type::endian_type());
+                                curve_element_write_data<bit_length(), 
+                                    typename base_impl_type::endian_type>(value_, iter);
                         }
 
                     private:
-                        value_type value_ = static_cast<value_type>(0);
+                        value_type value_;
                     };
 
                 }    // namespace detail

@@ -45,9 +45,9 @@ namespace nil {
             namespace processing {
 
                 template<std::size_t TSize, 
+                         typename Endianness, 
                          typename G1GroupElement, 
-                         typename TIter, 
-                         typename Endianness>
+                         typename TIter>
                 typename std::enable_if<algebra::is_g1_group_element<G1GroupElement>::value, 
                     void>::type
                     curve_element_write_data(const G1GroupElement &point, 
@@ -74,9 +74,9 @@ namespace nil {
                 }
 
                 template<std::size_t TSize, 
+                         typename Endianness, 
                          typename G2GroupElement, 
-                         typename TIter, 
-                         typename Endianness>
+                         typename TIter>
                 typename std::enable_if<algebra::is_g2_group_element<G2GroupElement>::value, 
                     void>::type
                     curve_element_write_data(const G2GroupElement &point, 
@@ -118,9 +118,9 @@ namespace nil {
                     (*iter) |= m_unit;
                 }
 
-                template<std::size_t TSize, 
-                         typename G1GroupElement,
+                template<std::size_t TSize,
                          typename Endianness, 
+                         typename G1GroupElement, 
                          typename TIter>
                     typename std::enable_if<algebra::is_g1_group_element<G1GroupElement>::value, 
                         G1GroupElement>::type
@@ -140,8 +140,10 @@ namespace nil {
                             (sizeof_field_element / chunk_bits) + 
                             ((sizeof_field_element % chunk_bits)?1:0);
                         using g1_value_type = G1GroupElement;
+                        using g1_field_type = 
+                            typename g1_value_type::underlying_field_type;
                         using g1_field_value_type = 
-                            typename g1_value_type::underlying_field_value_type;
+                            typename g1_field_type::value_type;
 
                         constexpr static const chunk_type I_bit = 0x40;
                         constexpr static const chunk_type S_bit = 0x20;
@@ -162,7 +164,7 @@ namespace nil {
                         g1_field_value_type y2_mod = x_mod.pow(3) + g1_field_value_type(4);
                         BOOST_ASSERT(y2_mod.is_square());
                         g1_field_value_type y_mod = y2_mod.sqrt();
-                        bool Y_bit = sign_gf_p(y_mod);
+                        bool Y_bit = detail::sign_gf_p<g1_field_type>(y_mod);
                         if (Y_bit == bool(m_unit & S_bit)) {
                             g1_value_type result(x_mod, y_mod, g1_field_value_type::one());
                             BOOST_ASSERT(result.is_well_formed());
@@ -173,9 +175,9 @@ namespace nil {
                         return result;
                     }
 
-                    template<std::size_t TSize, 
-                         typename G2GroupElement,
+                    template<std::size_t TSize,
                          typename Endianness, 
+                         typename G2GroupElement, 
                          typename TIter>
                     typename std::enable_if<algebra::is_g2_group_element<G2GroupElement>::value, 
                         G2GroupElement>::type
@@ -195,8 +197,10 @@ namespace nil {
                                 (sizeof_field_element / chunk_bits) + 
                                 ((sizeof_field_element % chunk_bits)?1:0);
                             using g2_value_type = G2GroupElement;
+                            using g2_field_type = 
+                                typename g2_value_type::underlying_field_type;
                             using g2_field_value_type = 
-                                typename g2_value_type::underlying_field_value_type;
+                                typename g2_field_type::value_type;
 
                             constexpr static const chunk_type I_bit = 0x40;
                             constexpr static const chunk_type S_bit = 0x20;
@@ -224,7 +228,7 @@ namespace nil {
                             g2_field_value_type y2_mod = x_mod.pow(3) + g2_field_value_type(4, 4);
                             BOOST_ASSERT(y2_mod.is_square());
                             g2_field_value_type y_mod = y2_mod.sqrt();
-                            bool Y_bit = sign_gf_p(y_mod);
+                            bool Y_bit = detail::sign_gf_p<g2_field_type>(y_mod);
                             if (Y_bit == bool(m_unit & S_bit)) {
                                 g2_value_type result(x_mod, y_mod, g2_field_value_type::one());
                                 BOOST_ASSERT(result.is_well_formed());

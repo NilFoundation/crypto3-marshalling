@@ -41,6 +41,7 @@
 
 #include <nil/crypto3/algebra/random_element.hpp>
 #include <nil/crypto3/algebra/curves/bls12.hpp>
+#include <nil/crypto3/algebra/curves/detail/marshalling.hpp>
 
 #include <nil/crypto3/marshalling/types/curve_element.hpp>
 
@@ -60,30 +61,65 @@ void test_curve_element_big_endian(CurveGroupElement val) {
     std::size_t units_bits = 8;
     using unit_type = unsigned char;
     
-    using integral_type = types::curve_element<
+    using curve_element_type = types::curve_element<
         nil::marshalling::field_type<
         nil::marshalling::option::big_endian>,
-        CurveGroupElement>;
+        typename CurveGroupElement::group_type>;
+    using curve_type = typename CurveGroupElement::group_type::curve_type;
 
-    
+    auto compressed_curve_group_element =
+        nil::marshalling::
+            curve_element_serializer<curve_type>::
+                point_to_octets_compress(val);
+
+    std::size_t unitblob_size = 
+        curve_element_type::bit_length()/units_bits + 
+        ((curve_element_type::bit_length()%units_bits)?1:0);
+    curve_element_type test_val = curve_element_type(val);
+
+    std::vector<unit_type> cv;
+    cv.resize(unitblob_size);
+
+    auto write_iter = cv.begin();
+
+    nil::marshalling::status_type status =  
+        test_val.write(write_iter, 
+            unitblob_size * units_bits);
+
+    BOOST_CHECK(std::equal(compressed_curve_group_element.begin(), 
+                           compressed_curve_group_element.end(),
+                           cv.begin()));
+
+    curve_element_type test_val_read;
+
+    auto read_iter = cv.begin();
+    status = 
+        test_val_read.read(read_iter, 
+                curve_element_type::bit_length());
+
+    BOOST_CHECK(test_val == test_val_read);
 }
 
 template<typename CurveGroup>
 void test_curve_element() {
     std::cout << std::hex;
     std::cerr << std::hex;
-    for (unsigned i = 0; i < 1000; ++i) {
+    // for (unsigned i = 0; i < 1000; ++i) {
         typename CurveGroup::value_type val = 
             nil::crypto3::algebra::random_element<CurveGroup>();
         test_curve_element_big_endian(val);
         // test_curve_element_little_endian(val);
-    }
+    // }
 }
 
 BOOST_AUTO_TEST_SUITE(curve_element_test_suite)
 
-BOOST_AUTO_TEST_CASE(curve_element_bls12_381) {
+BOOST_AUTO_TEST_CASE(curve_element_bls12_381_g1) {
     test_curve_element<nil::crypto3::algebra::curves::bls12<381>::g1_type>();
 }
+
+// BOOST_AUTO_TEST_CASE(curve_element_bls12_381_g2) {
+//     test_curve_element<nil::crypto3::algebra::curves::bls12<381>::g2_type>();
+// }
 
 BOOST_AUTO_TEST_SUITE_END()
