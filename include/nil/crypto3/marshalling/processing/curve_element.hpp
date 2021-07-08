@@ -42,6 +42,33 @@ namespace nil {
             namespace processing {
 
                 template<std::size_t TSize,
+                         typename G1GroupElement, 
+                         typename UnitIter, 
+                         std::size_t UnitsCount,
+                         typename Endianness>
+                typename std::enable_if<detail::is_g1_group_element<G1GroupElement>::value, 
+                    void>::type
+                    write_data(const G1GroupElement &point, 
+                               TIter &iter) {
+
+                    using chunk_type = 
+                            typename TIter::value_type;
+
+                    G1GroupElement point_affine = point.to_affine();
+                    auto m_unit = detail::evaluate_m_unit<chunk_type>(point_affine, true);
+                    // TODO: check possibilities for TA
+
+                    if (!(I_bit & m_unit)) {
+
+                        // We assume here, that write_data doesn't change the iter
+                        write_data<TSize, Endianness>(
+                            point_affine.X.data.template convert_to<modulus_type>(), 
+                            iter);
+                    }
+                    (*iter) |= m_unit;
+                }
+
+                template<std::size_t TSize,
                          typename G2GroupElement, 
                          typename UnitIter, 
                          std::size_t UnitsCount,
@@ -51,6 +78,9 @@ namespace nil {
                     write_data(const G2GroupElement &point, 
                                TIter &iter) {
 
+                    using chunk_type = 
+                            typename TIter::value_type;
+                            
                     constexpr static const std::size_t sizeof_field_element = 
                         TSize/(G2GroupElement::underlying_field_type::arity);
                     constexpr static const std::size_t units_bits = 8;
@@ -60,7 +90,7 @@ namespace nil {
                         ((sizeof_field_element % chunk_bits)?1:0);
 
                     G2GroupElement point_affine = point.to_affine();
-                    auto m_unit = detail::evaluate_m_unit(point_affine, true);
+                    auto m_unit = detail::evaluate_m_unit<chunk_type>(point_affine, true);
                     // TODO: check possibilities for TA
 
                     if (!(I_bit & m_unit)) {
@@ -81,29 +111,116 @@ namespace nil {
                     (*iter) |= m_unit;
                 }
 
-                template<std::size_t TSize,
-                         typename G1GroupElement, 
-                         typename UnitIter, 
-                         std::size_t UnitsCount,
-                         typename Endianness>
-                typename std::enable_if<detail::is_g1_group_element<G1GroupElement>::value, 
-                    void>::type
-                    write_data(const G1GroupElement &point, 
-                               TIter &iter) {
+                template<std::size_t TSize, 
+                         typename G1GroupElement,
+                         typename Endianness, 
+                         typename TIter>
+                    typename std::enable_if<is_g1_group_element<G1GroupElement>::value, 
+                        G1GroupElement>::type
+                        read_data(TIter &iter) {
 
-                    G1GroupElement point_affine = point.to_affine();
-                    auto m_unit = detail::evaluate_m_unit(point_affine, true);
-                    // TODO: check possibilities for TA
+                        using chunk_type = 
+                            typename TIter::value_type;
 
-                    if (!(I_bit & m_unit)) {
+                        const chunk_type m_byte = *iter & 0xE0;
+                        BOOST_ASSERT(m_byte != 0x20 && m_byte != 0x60 && m_byte != 0xE0);
 
-                        // We assume here, that write_data doesn't change the iter
-                        write_data<TSize, Endianness>(
-                            point_affine.X.data.template convert_to<modulus_type>(), 
-                            iter);
+                        constexpr static const std::size_t sizeof_field_element = 
+                            TSize/(G1GroupElement::underlying_field_type::arity);
+                        constexpr static const std::size_t units_bits = 8;
+                        constexpr static const std::size_t chunk_bits = sizeof(chunk_type) * units_bits;
+                        constexpr static const std::size_t sizeof_field_element_chunks_count = 
+                            (sizeof_field_element / chunk_bits) + 
+                            ((sizeof_field_element % chunk_bits)?1:0);
+                        using g1_value_type = G1GroupElement;
+                        using g1_field_value_type = 
+                            typename g1_value_type::underlying_field_value_type;
+
+                        if (m_unit & I_bit) {
+                            BOOST_ASSERT(iter+sizeof_field_element_chunks_count == 
+                                std::find(iter, 
+                                    iter+sizeof_field_element_chunks_count, 
+                                    true));
+                            return g1_value_type();    // point at infinity
+                        }
+
+                        modulus_type x = read_data<sizeof_field_element,
+                                                 modulus_type,
+                                                 Endianness>(iter);
+
+                        g1_field_value_type x_mod(x);
+                        g1_field_value_type y2_mod = x_mod.pow(3) + g1_field_value_type(4);
+                        BOOST_ASSERT(y2_mod.is_square());
+                        g1_field_value_type y_mod = y2_mod.sqrt();
+                        bool Y_bit = sign_gf_p(y_mod);
+                        if (Y_bit == bool(m_unit & S_bit)) {
+                            g1_value_type result(x_mod, y_mod, g1_field_value_type::one());
+                            BOOST_ASSERT(result.is_well_formed());
+                            return result;
+                        }
+                        g1_value_type result(x_mod, -y_mod, g1_field_value_type::one());
+                        BOOST_ASSERT(result.is_well_formed());
+                        return result;
                     }
-                    (*iter) |= m_unit;
-                }
+
+                    template<std::size_t TSize, 
+                         typename G2GroupElement,
+                         typename Endianness, 
+                         typename TIter>
+                    typename std::enable_if<is_g2_group_element<G2GroupElement>::value, 
+                        G2GroupElement>::type
+                            read_data(TIter &iter) {
+
+                            using chunk_type = 
+                                typename TIter::value_type;
+
+                            const chunk_type m_byte = *iter & 0xE0;
+                            BOOST_ASSERT(m_byte != 0x20 && m_byte != 0x60 && m_byte != 0xE0);
+
+                            constexpr static const std::size_t sizeof_field_element = 
+                                TSize/(G1GroupElement::underlying_field_type::arity);
+                            constexpr static const std::size_t units_bits = 8;
+                            constexpr static const std::size_t chunk_bits = sizeof(chunk_type) * units_bits;
+                            constexpr static const std::size_t sizeof_field_element_chunks_count = 
+                                (sizeof_field_element / chunk_bits) + 
+                                ((sizeof_field_element % chunk_bits)?1:0);
+                            using g2_value_type = G2GroupElement;
+                            using g2_field_value_type = 
+                                typename g2_value_type::underlying_field_value_type;
+
+                            if (m_unit & I_bit) {
+                                BOOST_ASSERT(iter+2*sizeof_field_element_chunks_count == 
+                                std::find(iter, 
+                                    iter+2*sizeof_field_element_chunks_count, 
+                                    true));
+                                return g2_value_type();    // point at infinity
+                            }
+
+                            TIter read_iter = iter;
+
+                            modulus_type x_0 = read_data<sizeof_field_element,
+                                                 modulus_type,
+                                                 Endianness>(read_iter);
+                            read_iter += 2*sizeof_field_element_chunks_count;
+
+                            modulus_type x_1 = read_data<sizeof_field_element,
+                                                 modulus_type,
+                                                 Endianness>(read_iter);
+
+                            g2_field_value_type x_mod(x_0, x_1);
+                            g2_field_value_type y2_mod = x_mod.pow(3) + g2_field_value_type(4, 4);
+                            BOOST_ASSERT(y2_mod.is_square());
+                            g2_field_value_type y_mod = y2_mod.sqrt();
+                            bool Y_bit = sign_gf_p(y_mod);
+                            if (Y_bit == bool(m_unit & S_bit)) {
+                                g2_value_type result(x_mod, y_mod, g2_field_value_type::one());
+                                BOOST_ASSERT(result.is_well_formed());
+                                return result;
+                            }
+                            g2_value_type result(x_mod, -y_mod, g2_field_value_type::one());
+                            BOOST_ASSERT(result.is_well_formed());
+                            return result;
+                        }
 
             }    // namespace processing
         }    // namespace marshalling

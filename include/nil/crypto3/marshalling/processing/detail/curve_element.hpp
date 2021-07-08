@@ -42,83 +42,12 @@ namespace nil {
             namespace processing {
                 namespace detail {
 
-                    template<
-                        typename G1GroupElement,
-                        typename PointOctetsRange,
-                        typename = typename std::enable_if<
-                            std::is_same<std::uint8_t, typename PointOctetsRange::value_type>::value>::type>
-                    typename std::enable_if<is_g1_group_element<G1GroupElement>::value, G1GroupElement>::type
-                        compressed_to_point(PointOctetsRange &point_octets, std::uint8_t m_unit) {
+                    template<typename ChunkType,
+                             typename GroupValueType>
+                    static inline std::uint8_t evaluate_m_unit(const GroupValueType &point, 
+                        bool compression) {
 
-                        using g1_value_type = G1GroupElement;
-                        using g1_field_value_type = 
-                            typename g1_value_type::underlying_field_value_type;
-
-                        BOOST_ASSERT(std::distance(point_octets.begin(), point_octets.end()) == sizeof_field_element);
-
-                        if (m_unit & I_bit) {
-                            BOOST_ASSERT(point_octets.end() == std::find(point_octets.begin(), point_octets.end(), true));
-                            return g1_value_type();    // point at infinity
-                        }
-
-                        modulus_type x;
-                        multiprecision::import_bits(x, point_octets.rbegin(), point_octets.rend(), 8, false);
-                        g1_field_value_type x_mod(x);
-                        g1_field_value_type y2_mod = x_mod.pow(3) + g1_field_value_type(4);
-                        BOOST_ASSERT(y2_mod.is_square());
-                        g1_field_value_type y_mod = y2_mod.sqrt();
-                        bool Y_bit = sign_gf_p(y_mod);
-                        if (Y_bit == bool(m_unit & S_bit)) {
-                            g1_value_type result(x_mod, y_mod, g1_field_value_type::one());
-                            BOOST_ASSERT(result.is_well_formed());
-                            return result;
-                        }
-                        g1_value_type result(x_mod, -y_mod, g1_field_value_type::one());
-                        BOOST_ASSERT(result.is_well_formed());
-                        return result;
-                    }
-
-                    template<
-                        typename G2GroupElement,
-                        typename PointOctetsRange,
-                        typename = typename std::enable_if<
-                             std::is_same<std::uint8_t, typename PointOctetsRange::value_type>::value>::type>
-                    typename std::enable_if<is_g2_group_element<G2GroupElement>::value, G2GroupElement>::type
-                        compressed_to_point(PointOctetsRange &point_octets, std::uint8_t m_unit) {
-
-                        using g2_value_type = G2GroupElement;
-                        using g2_field_value_type = 
-                            typename g2_value_type::underlying_field_value_type;
-                        BOOST_ASSERT(std::distance(point_octets.begin(), point_octets.end()) == 2 * sizeof_field_element);
-
-                        if (m_unit & I_bit) {
-                            BOOST_ASSERT(point_octets.end() == std::find(point_octets.begin(), point_octets.end(), true));
-                            return g2_value_type();    // point at infinity
-                        }
-
-                        modulus_type x_0, x_1;
-                        multiprecision::import_bits(
-                            x_0, point_octets.rbegin(), point_octets.rbegin() + sizeof_field_element, 8, false);
-                        multiprecision::import_bits(
-                            x_1, point_octets.rbegin() + sizeof_field_element, point_octets.rend(), 8, false);
-                        g2_field_value_type x_mod(x_0, x_1);
-                        g2_field_value_type y2_mod = x_mod.pow(3) + g2_field_value_type(4, 4);
-                        BOOST_ASSERT(y2_mod.is_square());
-                        g2_field_value_type y_mod = y2_mod.sqrt();
-                        bool Y_bit = sign_gf_p(y_mod);
-                        if (Y_bit == bool(m_unit & S_bit)) {
-                            g2_value_type result(x_mod, y_mod, g2_field_value_type::one());
-                            BOOST_ASSERT(result.is_well_formed());
-                            return result;
-                        }
-                        g2_value_type result(x_mod, -y_mod, g2_field_value_type::one());
-                        BOOST_ASSERT(result.is_well_formed());
-                        return result;
-                    }
-
-                    template<typename GroupValueType>
-                    static inline std::uint8_t evaluate_m_unit(const GroupValueType &point, bool compression) {
-                        std::uint8_t result = 0;
+                        ChunkType result = 0;
                         if (compression) {
                             result |= C_bit;
                         }
