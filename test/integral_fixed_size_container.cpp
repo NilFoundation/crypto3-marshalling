@@ -151,6 +151,65 @@ void test_round_trip_fixed_size_container_fixed_precision_big_endian(
 	BOOST_CHECK(cv == test_val_byteblob);
 }
 
+
+template<class T, std::size_t TSize>
+void test_round_trip_fixed_size_container_fixed_precision_little_endian(
+    nil::marshalling::container::static_vector<T, TSize> val_container) {
+    using namespace nil::crypto3::marshalling;
+    std::size_t units_bits = 8;
+    using unit_type = unsigned char;
+    using integral_type = types::integral<
+        nil::marshalling::field_type<
+        nil::marshalling::option::little_endian>,
+        T>;
+
+    using container_type = 
+    nil::marshalling::types::array_list<
+        nil::marshalling::field_type<
+        nil::marshalling::option::little_endian>,
+        integral_type,
+        nil::marshalling::option::fixed_size_storage<TSize>
+    >;
+
+    std::size_t unitblob_size = 
+        integral_type::bit_length()/units_bits + 
+        ((integral_type::bit_length()%units_bits)?1:0);
+    
+    container_type test_val_container;
+
+    std::vector<unit_type> cv;
+    cv.resize(unitblob_size*TSize, 0x00);
+
+    for (std::size_t i=0; i<TSize; i++){
+
+        export_bits(val_container[i], 
+            cv.begin() + unitblob_size*i,
+            units_bits, false);
+    }
+
+    auto read_iter = cv.begin();
+    nil::marshalling::status_type status = 
+        test_val_container.read(read_iter, cv.size());
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+    for (std::size_t i = 0; i < val_container.size(); i++){
+        BOOST_CHECK(val_container[i] == 
+            test_val_container.value()[i].value());
+    }
+
+    std::vector<unit_type> test_val_byteblob;
+    test_val_byteblob.resize(cv.size());
+    auto write_iter = test_val_byteblob.begin();
+
+    status = test_val_container.write(write_iter, 
+        test_val_byteblob.size() * units_bits);
+    BOOST_CHECK(status == 
+        nil::marshalling::status_type::success);
+
+    BOOST_CHECK(cv == test_val_byteblob);
+}
+
 template<class T, std::size_t TSize>
 void test_round_trip_fixed_size_container_fixed_precision() {
     std::cout << std::hex;
@@ -161,7 +220,7 @@ void test_round_trip_fixed_size_container_fixed_precision() {
             val_container.push_back(generate_random<T>());
         }
         test_round_trip_fixed_size_container_fixed_precision_big_endian<T, TSize>(val_container);
-        // test_round_trip_fixed_size_container_fixed_precision_little_endian(val);
+        test_round_trip_fixed_size_container_fixed_precision_little_endian<T, TSize>(val_container);
     }
 }
 
