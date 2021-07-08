@@ -136,8 +136,7 @@ namespace nil {
                         template<typename TIter>
                         void write_no_status(TIter &iter) const {
                             crypto3::marshalling::processing::
-                                write_data<T,
-                                           typename base_impl_type::endian_type>(value_, iter);
+                                write_data<typename base_impl_type::endian_type>(value_, iter);
                         }
 
                     private:

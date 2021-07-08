@@ -216,8 +216,8 @@ namespace nil {
                 }
 
                 /// @brief Same as write_big_endian<T, TIter>()
-                template<typename T, 
-                         typename Endianness,
+                template<typename Endianness,
+                         typename T, 
                          typename TIter>
                 typename std::enable_if<
                     std::is_same<Endianness, 
@@ -243,8 +243,8 @@ namespace nil {
                 }
 
                 /// @brief Same as write_little_endian<T, TIter>()
-                template<typename T, 
-                         typename Endianness, 
+                template<typename Endianness,
+                         typename T, 
                          typename TIter>
                 typename std::enable_if<
                     std::is_same<Endianness, 

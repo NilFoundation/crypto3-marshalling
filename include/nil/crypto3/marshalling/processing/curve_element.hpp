@@ -41,248 +41,68 @@ namespace nil {
         namespace marshalling {
             namespace processing {
 
-                /// @brief Write part of integral value into the output area using big
-                ///     endian notation.
-                /// @tparam TSize Number of bytes to write.
-                /// @param[in] value Integral type value to be written.
-                /// @param[in, out] iter Output iterator.
-                /// @pre TSize <= sizeof(T).
-                /// @pre The iterator must be valid and can be successfully dereferenced
-                ///      and incremented at least TSize times.
-                /// @post The iterator is advanced.
-                template<typename T, typename TIter>
-                void curve_element_write_big_endian(T value, TIter &iter) {
-                    std::size_t units_bits = 8;
-                    std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
+                template<std::size_t TSize,
+                         typename G2GroupElement, 
+                         typename UnitIter, 
+                         std::size_t UnitsCount,
+                         typename Endianness>
+                typename std::enable_if<detail::is_g2_group_element<G1GroupElement>::value, 
+                    void>::type
+                    write_data(const G2GroupElement &point, 
+                               TIter &iter) {
 
-                    export_bits(value, iter, chunk_bits, true);
-                }
+                    constexpr static const std::size_t sizeof_field_element = 
+                        TSize/(G2GroupElement::underlying_field_type::arity);
+                    constexpr static const std::size_t units_bits = 8;
+                    constexpr static const std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
+                    constexpr static const std::size_t sizeof_field_element_chunks_count = 
+                        (sizeof_field_element / chunk_bits) + 
+                        ((sizeof_field_element % chunk_bits)?1:0);
 
-                /// @brief Write part of integral value into the output area using big
-                ///     endian notation.
-                /// @tparam TSize Number of bytes to write.
-                /// @param[in] value Integral type value to be written.
-                /// @param[in, out] iter Output iterator.
-                /// @pre TSize <= sizeof(T).
-                /// @pre The iterator must be valid and can be successfully dereferenced
-                ///      and incremented at least TSize times.
-                /// @post The iterator is advanced.
-                template<std::size_t TSize, typename T, typename TIter>
-                void curve_element_write_big_endian(T value, TIter &iter) {
-                    std::size_t units_bits = 8;
-                    std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
-                    std::size_t chunks_count = 
-                        (TSize / chunk_bits) + 
-                        ((TSize % chunk_bits)?1:0);
+                    G2GroupElement point_affine = point.to_affine();
+                    auto m_unit = detail::evaluate_m_unit(point_affine, true);
+                    // TODO: check possibilities for TA
 
-                    std::size_t begin_index = chunks_count - 
-                        ((nil::crypto3::multiprecision::msb(value) + 1)/chunk_bits + 
-                            (((nil::crypto3::multiprecision::msb(value) + 1) % chunk_bits)?1:0));
+                    if (!(I_bit & m_unit)) {
 
-                    std::fill(iter, iter + begin_index, 0);
+                        Iter write_iter = iter;
+                        // We assume here, that write_data doesn't change the iter
+                        write_data<TSize, Endianness>(
+                            point_affine.X.data[0].data.template convert_to<modulus_type>(), 
+                            write_iter);
 
-                    export_bits(value, iter + begin_index, chunk_bits, true);
-                }
+                        write_iter += sizeof_field_element_chunks_count;
+                        // We assume here, that write_data doesn't change the iter
+                        write_data<TSize, Endianness>(
+                            point_affine.X.data[1].data.template convert_to<modulus_type>(), 
+                            write_iter);
 
-                /// @brief Read part of integral value from the input area using big
-                ///     endian notation.
-                /// @tparam T Type to read.
-                /// @tparam TSize Number of bytes to read.
-                /// @param[in, out] iter Input iterator.
-                /// @return Read value
-                /// @pre TSize <= sizeof(T).
-                /// @pre The iterator must be valid and can be successfully dereferenced
-                ///      and incremented at least TSize times.
-                /// @post The iterator is advanced.
-                template<typename T, typename TIter>
-                T curve_element_read_big_endian(TIter &iter, std::size_t value_size) {
-                    T serializedValue;
-                    std::size_t units_bits = 8;
-                    std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
-                    std::size_t chunks_count = 
-                        (value_size / chunk_bits) + 
-                        ((value_size % chunk_bits)?1:0);
-
-                    multiprecision::import_bits(serializedValue, 
-                        iter, iter + chunks_count, chunk_bits, true);
-                    return serializedValue;
-                }
-
-                /// @brief Read part of integral value from the input area using big
-                ///     endian notation.
-                /// @tparam T Type to read.
-                /// @tparam TSize Number of bytes to read.
-                /// @param[in, out] iter Input iterator.
-                /// @return Read value
-                /// @pre TSize <= sizeof(T).
-                /// @pre The iterator must be valid and can be successfully dereferenced
-                ///      and incremented at least TSize times.
-                /// @post The iterator is advanced.
-                template<std::size_t TSize, typename T, typename TIter>
-                T curve_element_read_big_endian(TIter &iter) {
-                    T serializedValue;
-                    std::size_t units_bits = 8;
-                    std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
-                    std::size_t chunks_count = 
-                        (TSize / chunk_bits) + 
-                        ((TSize % chunk_bits)?1:0);
-
-                    multiprecision::import_bits(serializedValue, 
-                        iter, iter + chunks_count, chunk_bits, true);
-                    return serializedValue;
-                }
-
-                /// @brief Write integral value into the output area using big
-                ///     endian notation.
-                /// @param[in] value Integral type value to be written.
-                /// @param[in, out] iter Output iterator.
-                /// @pre The iterator must be valid and can be successfully dereferenced
-                ///      and incremented at least sizeof(T) times.
-                /// @post The iterator is advanced.
-                template<typename T, typename TIter>
-                void curve_element_write_little_endian(T value, TIter &iter) {
-                    std::size_t units_bits = 8;
-                    std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
-
-                    export_bits(value, iter, chunk_bits, false);
-                }
-
-                /// @brief Write integral value into the output area using big
-                ///     endian notation.
-                /// @param[in] value Integral type value to be written.
-                /// @param[in, out] iter Output iterator.
-                /// @pre The iterator must be valid and can be successfully dereferenced
-                ///      and incremented at least sizeof(T) times.
-                /// @post The iterator is advanced.
-                template<std::size_t TSize, typename T, typename TIter>
-                void curve_element_write_little_endian(T value, TIter &iter) {
-                    std::size_t units_bits = 8;
-                    std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
-                    std::size_t chunks_count = 
-                        (TSize / chunk_bits) + 
-                        ((TSize % chunk_bits)?1:0);
-
-                    std::size_t end_index = chunks_count - 
-                        ((nil::crypto3::multiprecision::msb(value) + 1)/chunk_bits + 
-                            (((nil::crypto3::multiprecision::msb(value) + 1) % chunk_bits)?1:0));
-
-                    if (end_index < chunks_count){
-                        std::fill(iter + end_index, iter + chunks_count, 0x00);
                     }
-                    
-                    export_bits(value, iter, chunk_bits, false);
+                    (*iter) |= m_unit;
                 }
 
-                /// @brief Read integral value from the input area using little
-                ///     endian notation.
-                /// @tparam T Type to read.
-                /// @param[in, out] iter Input iterator.
-                /// @return Read value
-                /// @pre The iterator must be valid and can be successfully dereferenced
-                ///      and incremented at least sizeof(T) times.
-                /// @post The iterator is advanced.
-                template<typename T, typename TIter>
-                T curve_element_read_little_endian(TIter &iter, std::size_t value_size) {
-                    T serializedValue;
-                    std::size_t units_bits = 8;
-                    std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
-                    std::size_t chunks_count = 
-                        (value_size / chunk_bits) + 
-                        ((value_size % chunk_bits)?1:0);
+                template<std::size_t TSize,
+                         typename G1GroupElement, 
+                         typename UnitIter, 
+                         std::size_t UnitsCount,
+                         typename Endianness>
+                typename std::enable_if<detail::is_g1_group_element<G1GroupElement>::value, 
+                    void>::type
+                    write_data(const G1GroupElement &point, 
+                               TIter &iter) {
 
-                    multiprecision::import_bits(serializedValue, 
-                        iter, iter + chunks_count, chunk_bits, false);
-                    return serializedValue;
-                }
+                    G1GroupElement point_affine = point.to_affine();
+                    auto m_unit = detail::evaluate_m_unit(point_affine, true);
+                    // TODO: check possibilities for TA
 
-                /// @brief Read integral value from the input area using little
-                ///     endian notation.
-                /// @tparam T Type to read.
-                /// @param[in, out] iter Input iterator.
-                /// @return Read value
-                /// @pre The iterator must be valid and can be successfully dereferenced
-                ///      and incremented at least sizeof(T) times.
-                /// @post The iterator is advanced.
-                template<std::size_t TSize, typename T, typename TIter>
-                T curve_element_read_little_endian(TIter &iter) {
-                    T serializedValue;
-                    std::size_t units_bits = 8;
-                    std::size_t chunk_bits = sizeof(typename TIter::value_type) * units_bits;
-                    std::size_t chunks_count = 
-                        (TSize / chunk_bits) + 
-                        ((TSize % chunk_bits)?1:0);
+                    if (!(I_bit & m_unit)) {
 
-                    multiprecision::import_bits(serializedValue, 
-                        iter, iter + chunks_count, chunk_bits, false);
-                    return serializedValue;
-                }
-
-                /// @brief Same as curve_element_write_big_endian<T, TIter>()
-                template<typename T, typename TIter>
-                void curve_element_write_data(T value, TIter &iter, 
-                    const nil::marshalling::endian::big_endian &endian) {
-                    static_cast<void>(endian);
-                    curve_element_write_big_endian(value, iter);
-                }
-
-                /// @brief Same as curve_element_write_big_endian<TSize, T, TIter>()
-                template<std::size_t TSize, typename T, typename TIter>
-                void curve_element_write_data(T value, TIter &iter, 
-                    const nil::marshalling::endian::big_endian &endian) {
-                    static_cast<void>(endian);
-                    curve_element_write_big_endian<TSize>(value, iter);
-                }
-
-                /// @brief Same as curve_element_write_little_endian<T, TIter>()
-                template<typename T, typename TIter>
-                void curve_element_write_data(T value, TIter &iter, 
-                    const nil::marshalling::endian::little_endian &endian) {
-                    static_cast<void>(endian);
-                    curve_element_write_little_endian(value, iter);
-                }
-
-                /// @brief Same as curve_element_write_little_endian<TSize, T, TIter>()
-                template<std::size_t TSize, typename T, typename TIter>
-                void curve_element_write_data(T value, TIter &iter, 
-                    const nil::marshalling::endian::little_endian &endian) {
-                    static_cast<void>(endian);
-                    curve_element_write_little_endian<TSize>(value, iter);
-                }
-
-                /// @brief Same as curve_element_read_big_endian<T, TIter>()
-                template<typename T, typename TIter>
-                T curve_element_read_data(TIter &iter, std::size_t value_size, 
-                    const nil::marshalling::endian::big_endian &endian) {
-
-                    static_cast<void>(endian);
-                    return curve_element_read_big_endian<T>(iter, value_size);
-                }
-
-                /// @brief Same as curve_element_read_big_endian<TSize, T, TIter>()
-                template<std::size_t TSize, typename T, typename TIter>
-                T curve_element_read_data(TIter &iter, 
-                    const nil::marshalling::endian::big_endian &endian) {
-
-                    static_cast<void>(endian);
-                    return curve_element_read_big_endian<TSize, T>(iter);
-                }
-
-                /// @brief Same as curve_element_read_little_endian<T, TIter>()
-                template<typename T, typename TIter>
-                T curve_element_read_data(TIter &iter, std::size_t value_size, 
-                    const nil::marshalling::endian::little_endian &endian) {
-
-                    static_cast<void>(endian);
-                    return curve_element_read_little_endian<T>(iter, value_size);
-                }
-
-                /// @brief Same as curve_element_read_little_endian<TSize, T, TIter>()
-                template<std::size_t TSize, typename T, typename TIter>
-                T curve_element_read_data(TIter &iter, 
-                    const nil::marshalling::endian::little_endian &endian) {
-
-                    static_cast<void>(endian);
-                    return curve_element_read_little_endian<TSize, T>(iter);
+                        // We assume here, that write_data doesn't change the iter
+                        write_data<TSize, Endianness>(
+                            point_affine.X.data.template convert_to<modulus_type>(), 
+                            iter);
+                    }
+                    (*iter) |= m_unit;
                 }
 
             }    // namespace processing

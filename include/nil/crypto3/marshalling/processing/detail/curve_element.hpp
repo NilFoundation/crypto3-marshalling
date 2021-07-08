@@ -42,55 +42,13 @@ namespace nil {
             namespace processing {
                 namespace detail {
 
-                    template<typename G1GroupElement, 
-                             typename UnitIter, 
-                             std::size_t UnitsCount>
-                    typename std::enable_if<is_g1_group_element<G1GroupElement>::value, 
-                        compressed_g1_octets>::type
-                        point_to_units_compress(const G1GroupElement &point) {
-
-                        compressed_g1_octets result = {0};
-                        G1GroupElement point_affine = point.to_affine();
-                        auto m_byte = evaluate_m_byte(point_affine, true);
-                        // TODO: check possibilities for TA
-                        if (!(I_bit & m_byte)) {
-                            multiprecision::export_bits(
-                                point_affine.X.data.template convert_to<modulus_type>(), result.rbegin(), 8, false);
-                        }
-                        result[0] |= m_byte;
-                        return result;
-                    }
-
-                    template<typename G2GroupElement, 
-                             typename UnitIter, 
-                             std::size_t UnitsCount>
-                    typename std::enable_if<is_g2_group_element<G2GroupElement>::value, 
-                        compressed_g2_octets>::type
-                        point_to_octets_compress(const G2GroupElement &point) {
-
-                        compressed_g2_octets result = {0};
-                        G2GroupElement point_affine = point.to_affine();
-                        auto m_byte = evaluate_m_byte(point_affine, true);
-                        // TODO: check possibilities for TA
-                        if (!(I_bit & m_byte)) {
-                            multiprecision::export_bits(
-                                point_affine.X.data[0].data.template convert_to<modulus_type>(), result.rbegin(), 8, false);
-                            multiprecision::export_bits(point_affine.X.data[1].data.template convert_to<modulus_type>(),
-                                                        result.rbegin() + sizeof_field_element,
-                                                        8,
-                                                        false);
-                        }
-                        result[0] |= m_byte;
-                        return result;
-                    }
-
                     template<
                         typename G1GroupElement,
                         typename PointOctetsRange,
                         typename = typename std::enable_if<
                             std::is_same<std::uint8_t, typename PointOctetsRange::value_type>::value>::type>
                     typename std::enable_if<is_g1_group_element<G1GroupElement>::value, G1GroupElement>::type
-                        compressed_to_point(PointOctetsRange &point_octets, std::uint8_t m_byte) {
+                        compressed_to_point(PointOctetsRange &point_octets, std::uint8_t m_unit) {
 
                         using g1_value_type = G1GroupElement;
                         using g1_field_value_type = 
@@ -98,7 +56,7 @@ namespace nil {
 
                         BOOST_ASSERT(std::distance(point_octets.begin(), point_octets.end()) == sizeof_field_element);
 
-                        if (m_byte & I_bit) {
+                        if (m_unit & I_bit) {
                             BOOST_ASSERT(point_octets.end() == std::find(point_octets.begin(), point_octets.end(), true));
                             return g1_value_type();    // point at infinity
                         }
@@ -110,7 +68,7 @@ namespace nil {
                         BOOST_ASSERT(y2_mod.is_square());
                         g1_field_value_type y_mod = y2_mod.sqrt();
                         bool Y_bit = sign_gf_p(y_mod);
-                        if (Y_bit == bool(m_byte & S_bit)) {
+                        if (Y_bit == bool(m_unit & S_bit)) {
                             g1_value_type result(x_mod, y_mod, g1_field_value_type::one());
                             BOOST_ASSERT(result.is_well_formed());
                             return result;
@@ -126,14 +84,14 @@ namespace nil {
                         typename = typename std::enable_if<
                              std::is_same<std::uint8_t, typename PointOctetsRange::value_type>::value>::type>
                     typename std::enable_if<is_g2_group_element<G2GroupElement>::value, G2GroupElement>::type
-                        compressed_to_point(PointOctetsRange &point_octets, std::uint8_t m_byte) {
+                        compressed_to_point(PointOctetsRange &point_octets, std::uint8_t m_unit) {
 
                         using g2_value_type = G2GroupElement;
                         using g2_field_value_type = 
                             typename g2_value_type::underlying_field_value_type;
                         BOOST_ASSERT(std::distance(point_octets.begin(), point_octets.end()) == 2 * sizeof_field_element);
 
-                        if (m_byte & I_bit) {
+                        if (m_unit & I_bit) {
                             BOOST_ASSERT(point_octets.end() == std::find(point_octets.begin(), point_octets.end(), true));
                             return g2_value_type();    // point at infinity
                         }
@@ -148,7 +106,7 @@ namespace nil {
                         BOOST_ASSERT(y2_mod.is_square());
                         g2_field_value_type y_mod = y2_mod.sqrt();
                         bool Y_bit = sign_gf_p(y_mod);
-                        if (Y_bit == bool(m_byte & S_bit)) {
+                        if (Y_bit == bool(m_unit & S_bit)) {
                             g2_value_type result(x_mod, y_mod, g2_field_value_type::one());
                             BOOST_ASSERT(result.is_well_formed());
                             return result;
@@ -159,7 +117,7 @@ namespace nil {
                     }
 
                     template<typename GroupValueType>
-                    static inline std::uint8_t evaluate_m_byte(const GroupValueType &point, bool compression) {
+                    static inline std::uint8_t evaluate_m_unit(const GroupValueType &point, bool compression) {
                         std::uint8_t result = 0;
                         if (compression) {
                             result |= C_bit;
