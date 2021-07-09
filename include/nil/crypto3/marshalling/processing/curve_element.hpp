@@ -104,14 +104,14 @@ namespace nil {
 
                         TIter write_iter = iter;
                         // We assume here, that write_data doesn't change the iter
-                        write_data<TSize, Endianness>(
-                            point_affine.X.data[0].data.template convert_to<typename G2GroupElement::underlying_field_type::modulus_type>(), 
+                        write_data<sizeof_field_element, Endianness>(
+                            point_affine.X.data[1].data.template convert_to<typename G2GroupElement::underlying_field_type::modulus_type>(), 
                             write_iter);
 
                         write_iter += sizeof_field_element_chunks_count;
                         // We assume here, that write_data doesn't change the iter
-                        write_data<TSize, Endianness>(
-                            point_affine.X.data[1].data.template convert_to<typename G2GroupElement::underlying_field_type::modulus_type>(), 
+                        write_data<sizeof_field_element, Endianness>(
+                            point_affine.X.data[0].data.template convert_to<typename G2GroupElement::underlying_field_type::modulus_type>(), 
                             write_iter);
 
                     }
@@ -215,12 +215,12 @@ namespace nil {
 
                             TIter read_iter = iter;
 
-                            typename G2GroupElement::underlying_field_type::modulus_type x_0 = read_data<sizeof_field_element,
+                            typename G2GroupElement::underlying_field_type::modulus_type x_1 = read_data<sizeof_field_element,
                                                  typename G2GroupElement::underlying_field_type::modulus_type,
                                                  Endianness>(read_iter);
-                            read_iter += 2*sizeof_field_element_chunks_count;
+                            read_iter += sizeof_field_element_chunks_count;
 
-                            typename G2GroupElement::underlying_field_type::modulus_type x_1 = read_data<sizeof_field_element,
+                            typename G2GroupElement::underlying_field_type::modulus_type x_0 = read_data<sizeof_field_element,
                                                  typename G2GroupElement::underlying_field_type::modulus_type,
                                                  Endianness>(read_iter);
 
