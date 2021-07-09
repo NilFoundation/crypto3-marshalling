@@ -45,7 +45,8 @@ endmacro()
 set(TESTS_NAMES
     "integral"
     "integral_fixed_size_container"
-    "curve_element")
+    "curve_element"
+    "curve_element_fixed_size_container")
 
 foreach(TEST_NAME ${TESTS_NAMES})
     define_marshalling_test(${TEST_NAME})

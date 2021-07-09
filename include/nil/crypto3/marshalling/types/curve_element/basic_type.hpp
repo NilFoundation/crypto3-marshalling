@@ -105,6 +105,8 @@ namespace nil {
                             // }
 
                             read_no_status(iter);
+                            iter += max_length()/8 + 
+                                ((max_length()%8)?1:0);
                             return nil::marshalling::status_type::success;
                         }
 
@@ -122,7 +124,9 @@ namespace nil {
                             //     return nil::marshalling::status_type::buffer_overflow;
                             // }
 
-                            write_no_status(iter);  
+                            write_no_status(iter);
+                            iter += max_length()/8 + 
+                                ((max_length()%8)?1:0);
                             return nil::marshalling::status_type::success;
                         }
 

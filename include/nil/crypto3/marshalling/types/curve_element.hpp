@@ -102,13 +102,13 @@ namespace nil {
 
                     /// @brief Get length required to serialise the current field value.
                     /// @return Number of bytes it will take to serialise the field value.
-                    static constexpr std::size_t  length() {
+                    static constexpr std::size_t length() {
                         return base_impl_type::length();
                     }
 
                     /// @brief Get length required to serialise the current field value.
                     /// @return Number of bytes it will take to serialise the field value.
-                    static constexpr std::size_t  bit_length() {
+                    static constexpr std::size_t bit_length() {
                         return base_impl_type::bit_length();
                     }
 
@@ -298,6 +298,34 @@ namespace nil {
                     return field1.value() != field2.value();
                 }
 
+                template<typename FieldType>
+                typename std::enable_if<
+                            algebra::is_field<FieldType>::value &&
+                            !(algebra::is_extended_field<FieldType>::value), int>::type
+                    compare_field_data(typename FieldType::value_type field_elem1,
+                                        typename FieldType::value_type field_elem2){
+                    return (field_elem1.data < field_elem2.data)?-1:((field_elem1.data > field_elem2.data)?1:0);
+                }
+
+                template<typename FieldType>
+                typename std::enable_if<
+                            algebra::is_extended_field<FieldType>::value, bool>::type
+                    compare_field_data(typename FieldType::value_type field_elem1,
+                                        typename FieldType::value_type field_elem2){
+                    for (std::size_t i = 0; 
+                         i < FieldType::arity;
+                         i++){
+
+                        int compare_result = compare_field_data<
+                                typename FieldType::underlying_field_type>(
+                                    field_elem1.data[i], 
+                                    field_elem2.data[i]);
+                        if (compare_result != 0){
+                            return compare_result;
+                        }
+                    }
+                }
+
                 /// @brief Equivalence comparison operator.
                 /// @param[in] field1 First field.
                 /// @param[in] field2 Second field.
@@ -312,7 +340,21 @@ namespace nil {
                                const curve_element<TTypeBase, 
                                                CurveGroupType, 
                                                TOptions...> &field2) {
-                    return field1.value() < field2.value();
+
+                    int compared_X = compare_field_data<
+                                typename CurveGroupType::underlying_field_type>(
+                                    field1.value().X, field2.value().X);
+                    int compared_Y = compare_field_data<
+                                typename CurveGroupType::underlying_field_type>(
+                                    field1.value().Y, field2.value().Y);
+                    int compared_Z = compare_field_data<
+                                typename CurveGroupType::underlying_field_type>(
+                                    field1.value().Z, field2.value().Z);
+
+                    if (compared_X == -1) return true;
+                    if (compared_X == 0 && compared_Y == -1) return true;
+                    if (compared_X == 0 && compared_Y == 0 && compared_Z == -1) return true;
+                    return false;
                 }
 
                 /// @brief Upcast type of the field definition to its parent nil::marshalling::types::curve_element type
