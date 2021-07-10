@@ -62,15 +62,15 @@ void test_field_element_big_endian(
 
     std::size_t units_bits = 8;
     using unit_type = unsigned char;
-    
+    using Endianness = nil::marshalling::option::big_endian;
     using field_element_type = types::field_element<
         nil::marshalling::field_type<
-        nil::marshalling::option::big_endian>,
+        Endianness>,
         FieldType>;
 
     field_element_type test_val = 
         types::fill_field_element<FieldType,
-            nil::marshalling::option::big_endian>(val);
+            Endianness>(val);
 
     std::size_t unitblob_size = 
         test_val.length();
@@ -90,12 +90,14 @@ void test_field_element_big_endian(
     status = 
         test_val_read.read(read_iter, 
                 cv.size());
+    
+    typename FieldType::value_type read_val = 
+        types::constuct_field_element<FieldType, 
+            Endianness>(
+                test_val_read);
 
-    // BOOST_CHECK(test_val.value() = 
-    //             test_val_read.value());
-    BOOST_CHECK(std::equal(test_val.value().begin(), 
-                           test_val.value().end(),
-                           test_val_read.value().begin()));
+    BOOST_CHECK(val == 
+                read_val);
 }
 
 template<typename FieldType>
@@ -115,11 +117,11 @@ void test_field_element() {
 
 BOOST_AUTO_TEST_SUITE(field_element_test_suite)
 
-// BOOST_AUTO_TEST_CASE(field_element_bls12_381_g1_field) {
-//     std::cout << "BLS12-381 g1 group field test started" << std::endl;
-//     test_field_element<nil::crypto3::algebra::curves::bls12<381>::g1_type::underlying_field_type>();
-//     std::cout << "BLS12-381 g1 group field test finished" << std::endl;
-// }
+BOOST_AUTO_TEST_CASE(field_element_bls12_381_g1_field) {
+    std::cout << "BLS12-381 g1 group field test started" << std::endl;
+    test_field_element<nil::crypto3::algebra::curves::bls12<381>::g1_type::underlying_field_type>();
+    std::cout << "BLS12-381 g1 group field test finished" << std::endl;
+}
 
 BOOST_AUTO_TEST_CASE(field_element_bls12_381_g2_field) {
     std::cout << "BLS12-381 g2 group field test started" << std::endl;

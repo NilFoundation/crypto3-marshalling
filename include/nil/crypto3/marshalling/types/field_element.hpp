@@ -168,6 +168,95 @@ namespace nil {
                         typename FieldType::modulus_type(field_elem.data)));
                 }
 
+                namespace detail {
+                    template<typename FieldType>
+                    typename std::enable_if<
+                                algebra::is_field<FieldType>::value &&
+                                !(algebra::is_extended_field<FieldType>::value), 
+                                typename FieldType::value_type
+                             >::type
+                        constuct_field_element(typename std::array<
+                            typename FieldType::modulus_type, 
+                            FieldType::arity>::iterator 
+                            field_elem_data_iter){
+                        
+                        return typename FieldType::value_type(*field_elem_data_iter);
+                    }
+
+                    template<typename FieldType>
+                    typename std::enable_if<
+                                algebra::is_extended_field<FieldType>::value, 
+                                typename FieldType::value_type
+                             >::type
+                        constuct_field_element(typename std::array<
+                            typename FieldType::modulus_type, 
+                            FieldType::arity>::iterator 
+                            field_elem_data_iter){
+                        
+                        constexpr static const std::size_t cur_arity = 
+                            FieldType::arity / 
+                            FieldType::underlying_field_type::arity;
+
+                        std::array<typename 
+                            FieldType::underlying_field_type::value_type,
+                            cur_arity> data;
+
+                        for (std::size_t i = 0; 
+                             i < cur_arity;
+                             i++){
+
+                            data[i] = constuct_field_element<
+                                typename FieldType::underlying_field_type>(
+                                field_elem_data_iter + 
+                                i*FieldType::underlying_field_type::arity);
+                        }
+                        return typename FieldType::value_type(data);
+                    }
+
+                }    // namespace detail
+
+                template<typename FieldType, 
+                         typename Endianness>
+                typename std::enable_if<
+                                algebra::is_extended_field<FieldType>::value, 
+                                typename FieldType::value_type
+                             >::type
+                    constuct_field_element(field_element<
+                                nil::marshalling::field_type<
+                                Endianness>,
+                            FieldType> field_elem){
+
+                        std::array<
+                                typename FieldType::modulus_type, 
+                                FieldType::arity>
+                                field_elem_data;
+
+                        for (std::size_t i=0; 
+                             i<FieldType::arity;
+                             i++){
+                            field_elem_data[i] = field_elem.value()[i].value();
+                        }
+
+                        return detail::constuct_field_element<
+                                   FieldType>(
+                                        field_elem_data.begin());
+                }
+
+                template<typename FieldType, 
+                         typename Endianness>
+                typename std::enable_if<
+                                algebra::is_field<FieldType>::value &&
+                                !(algebra::is_extended_field<FieldType>::value), 
+                                typename FieldType::value_type
+                             >::type
+                    constuct_field_element(field_element<
+                                nil::marshalling::field_type<
+                                Endianness>,
+                            FieldType> field_elem){
+
+                        return typename FieldType::value_type(
+                                        field_elem.value());
+                }
             }    // namespace types
         }        // namespace marshalling
     }        // namespace crypto3
