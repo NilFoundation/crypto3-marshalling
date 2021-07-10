@@ -168,6 +168,37 @@ namespace nil {
                         typename FieldType::modulus_type(field_elem.data)));
                 }
 
+                template<typename FieldType, 
+                         typename Endianness>
+                field_element<
+                    nil::marshalling::field_type<
+                        Endianness>,
+                    FieldType>
+                    fill_field_element_vector(std::vector<typename FieldType::value_type> field_elem_vector){
+
+                    using TTypeBase = nil::marshalling::field_type<
+                                Endianness>;
+
+                    using field_element_type = 
+                        field_element<
+                            TTypeBase,
+                            FieldType
+                        >;
+
+                    using field_element_vector_type = 
+                        nil::marshalling::types::array_list<
+                            TTypeBase,
+                            field_element_type
+                        >;
+
+                    field_element_vector_type result;
+
+                    std::vector &val = result.value();
+                    value.push_back(fill_field_element<FieldType,
+                        Endianness>(field_elem_vector[i]));
+                    return result;
+                }
+
                 namespace detail {
                     template<typename FieldType>
                     typename std::enable_if<
@@ -256,6 +287,39 @@ namespace nil {
 
                         return typename FieldType::value_type(
                                         field_elem.value());
+                }
+
+                template<typename FieldType, 
+                         typename Endianness>
+                std::vector<typename FieldType::value_type>
+                    constuct_field_element_vector(
+                        nil::marshalling::types::array_list<
+                            nil::marshalling::field_type<
+                                Endianness>,
+                            field_element<
+                                nil::marshalling::field_type<
+                                    Endianness>,
+                                FieldType
+                            >
+                        > field_elem_vector){
+
+                        std::vector<typename FieldType::value_type> result;
+                        std::vector<field_element<
+                                nil::marshalling::field_type<
+                                    Endianness>,
+                                FieldType
+                            >> &values = field_elem_vector.value();
+                        std::size_t size = values.size();
+
+                        for (std::size_t i; 
+                             i<size;
+                             i++){
+                            result.push_back(
+                                constuct_field_element<
+                                    FieldType, 
+                                    Endianness
+                                >(values[i]));
+                        }
                 }
             }    // namespace types
         }        // namespace marshalling

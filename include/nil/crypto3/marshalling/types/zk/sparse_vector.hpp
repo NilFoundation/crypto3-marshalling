@@ -83,6 +83,28 @@ namespace nil {
                             > 
                         >
                     >;
+
+                template <typename SparseVector, 
+                          typename Endianness>
+                sparse_vector_type<nil::marshalling::field_type<
+                                Endianness>,
+                                SparseVector>
+                    fill_sparse_vector(SparseVector sparse_vector_inp){
+
+                    using TTypeBase = nil::marshalling::field_type<
+                                Endianness>;
+
+                    return sparse_vector_type<nil::marshalling::field_type<
+                                Endianness>,
+                                SparseVector>(
+                                    fill_integral_vector<std::size_t, Endianness>(sparse_vector_inp.indicies),
+                                    fill_curve_element_vector<
+                                        typename SparseVector::group_type, 
+                                        Endianness>(sparse_vector_inp.values),
+                                    integral<nil::marshalling::field_type<Endianness>, 
+                                             std::size_t>(sparse_vector_inp.domain_size_));
+                }
+
             }    // namespace types
         }        // namespace marshalling
     }        // namespace crypto3
