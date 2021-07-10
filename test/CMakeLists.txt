@@ -17,6 +17,7 @@ cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
                        ${Boost_LIBRARIES}
                        ${CMAKE_WORKSPACE_NAME}::multiprecision
                        ${CMAKE_WORKSPACE_NAME}::algebra
+                       ${CMAKE_WORKSPACE_NAME}::zk
                        nil::marshalling)
 
 macro(define_marshalling_test name)
@@ -49,7 +50,8 @@ set(TESTS_NAMES
     "field_element"
     "curve_element"
     "curve_element_fixed_size_container"
-    "curve_element_non_fixed_size_container")
+    "curve_element_non_fixed_size_container"
+    "sparse_vector")
 
 foreach(TEST_NAME ${TESTS_NAMES})
     define_marshalling_test(${TEST_NAME})
