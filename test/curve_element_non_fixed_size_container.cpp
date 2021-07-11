@@ -60,21 +60,23 @@ template<typename Endianness,
          class CurveGroupElement, 
          std::size_t TSize>
 void test_curve_element_non_fixed_size_container(
-    std::array<CurveGroupElement, TSize> val_container) {
+    std::vector<CurveGroupElement> val_container) {
     using namespace nil::crypto3::marshalling;
     std::size_t units_bits = 8;
     using unit_type = unsigned char;
+    using CurveGroup = typename CurveGroupElement::group_type;
+
     using curve_element_type = types::curve_element<
         nil::marshalling::field_type<
         Endianness>,
-        typename CurveGroupElement::group_type>;
+        CurveGroup>;
     using curve_type = 
-        typename CurveGroupElement::group_type::curve_type;
+        typename CurveGroup::curve_type;
 
     using container_type = 
     nil::marshalling::types::array_list<
         nil::marshalling::field_type<
-        nil::marshalling::option::little_endian>,
+        Endianness>,
         curve_element_type
     >;
 
@@ -92,6 +94,18 @@ void test_curve_element_non_fixed_size_container(
     }
 
     container_type test_val = container_type(container_data);
+
+    container_type filled_val = 
+        types::fill_curve_element_vector<CurveGroup,
+            Endianness>(val_container);
+
+    std::vector<typename CurveGroup::value_type> constructed_val = 
+        types::constuct_curve_element_vector<CurveGroup, 
+            Endianness>(
+                filled_val);
+    BOOST_CHECK(std::equal(val_container.begin(), 
+                           val_container.end(), 
+                           constructed_val.begin()));
 
     auto write_iter = cv.begin();
 
@@ -118,9 +132,9 @@ void test_curve_element_non_fixed_size_container() {
     std::cout << std::hex;
     std::cerr << std::hex;
     for (unsigned i = 0; i < 128; ++i) {
-        std::array<
-            typename CurveGroup::value_type, 
-            TSize> val_container;
+        std::vector<
+            typename CurveGroup::value_type> 
+            val_container (TSize);
         if (!(i%16) && i){
             std::cout << std::dec << i << " tested" << std::endl;
         }

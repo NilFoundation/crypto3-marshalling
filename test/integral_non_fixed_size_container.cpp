@@ -106,9 +106,26 @@ void test_round_trip_non_fixed_size_container_fixed_precision(
     using container_type = 
     nil::marshalling::types::array_list<
         nil::marshalling::field_type<
-        nil::marshalling::option::little_endian>,
+        Endianness>,
         integral_type
     >;
+
+    std::vector<T> val_vector(TSize);
+    std::copy(val_container.begin(), 
+              val_container.end(),
+              val_vector.begin());
+
+    container_type filled_val = 
+        types::fill_integral_vector<T,
+            Endianness>(val_vector);
+
+    std::vector<T> constructed_val = 
+        types::constuct_integral_vector<T, 
+            Endianness>(
+                filled_val);
+    BOOST_CHECK(std::equal(val_container.begin(), 
+                           val_container.end(), 
+                           constructed_val.begin()));
 
     std::size_t unitblob_size = 
         integral_type::bit_length()/units_bits + 
@@ -150,6 +167,9 @@ void test_round_trip_non_fixed_size_container_fixed_precision() {
     std::cout << std::hex;
     std::cerr << std::hex;
     for (unsigned i = 0; i < 1000; ++i) {
+        if (!(i%128) && i){
+            std::cout << std::dec << i << " tested" << std::endl;
+        }
         nil::marshalling::container::static_vector<T, TSize> val_container;
         for (std::size_t i=0; i<TSize; i++){
             val_container.push_back(generate_random<T>());

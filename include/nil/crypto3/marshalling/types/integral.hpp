@@ -406,6 +406,75 @@ namespace nil {
                     return field;
                 }
 
+                template<typename IntegralContainer, 
+                         typename Endianness>
+                nil::marshalling::types::array_list<
+                    nil::marshalling::field_type<
+                            Endianness>,
+                    integral<
+                        nil::marshalling::field_type<
+                            Endianness>,
+                        IntegralContainer>
+                >
+                    fill_integral_vector(std::vector<IntegralContainer> integral_vector){
+
+                    using TTypeBase = nil::marshalling::field_type<
+                                Endianness>;
+
+                    using integral_type = 
+                        integral<
+                            TTypeBase,
+                            IntegralContainer
+                        >;
+
+                    using integral_vector_type = 
+                        nil::marshalling::types::array_list<
+                            TTypeBase,
+                            integral_type
+                        >;
+
+                    integral_vector_type result;
+
+                    std::vector<integral_type> &val = result.value();
+                    for (std::size_t i=0; 
+                         i<integral_vector.size();
+                         i++){
+                        val.push_back(integral_type(
+                            integral_vector[i]));
+                    }
+                    return result;
+                }
+
+                template<typename IntegralContainer, 
+                         typename Endianness>
+                std::vector<IntegralContainer>
+                    constuct_integral_vector(
+                        nil::marshalling::types::array_list<
+                            nil::marshalling::field_type<
+                                Endianness>,
+                            integral<
+                                nil::marshalling::field_type<
+                                    Endianness>,
+                                IntegralContainer
+                            >
+                        > integral_vector){
+
+                    std::vector<IntegralContainer> result;
+                    std::vector<integral<
+                            nil::marshalling::field_type<
+                                Endianness>,
+                            IntegralContainer
+                        >> &values = integral_vector.value();
+                    std::size_t size = values.size();
+
+                    for (std::size_t i=0; 
+                         i<size;
+                         i++){
+                        result.push_back(
+                            values[i].value());
+                    }
+                    return result;
+                }
             }    // namespace types
         }        // namespace marshalling
     }        // namespace crypto3

@@ -386,6 +386,75 @@ namespace nil {
                     return field;
                 }
 
+                template<typename CurveGroupType, 
+                         typename Endianness>
+                nil::marshalling::types::array_list<
+                    nil::marshalling::field_type<
+                            Endianness>,
+                    curve_element<
+                        nil::marshalling::field_type<
+                            Endianness>,
+                        CurveGroupType>
+                >
+                    fill_curve_element_vector(std::vector<typename CurveGroupType::value_type> curve_elem_vector){
+
+                    using TTypeBase = nil::marshalling::field_type<
+                                Endianness>;
+
+                    using curve_element_type = 
+                        curve_element<
+                            TTypeBase,
+                            CurveGroupType
+                        >;
+
+                    using curve_element_vector_type = 
+                        nil::marshalling::types::array_list<
+                            TTypeBase,
+                            curve_element_type
+                        >;
+
+                    curve_element_vector_type result;
+
+                    std::vector<curve_element_type> &val = result.value();
+                    for (std::size_t i=0; 
+                         i<curve_elem_vector.size();
+                         i++){
+                        val.push_back(curve_element_type(
+                            curve_elem_vector[i]));
+                    }
+                    return result;
+                }
+
+                template<typename CurveGroupType, 
+                         typename Endianness>
+                std::vector<typename CurveGroupType::value_type>
+                    constuct_curve_element_vector(
+                        nil::marshalling::types::array_list<
+                            nil::marshalling::field_type<
+                                Endianness>,
+                            curve_element<
+                                nil::marshalling::field_type<
+                                    Endianness>,
+                                CurveGroupType
+                            >
+                        > curve_elem_vector){
+
+                    std::vector<typename CurveGroupType::value_type> result;
+                    std::vector<curve_element<
+                            nil::marshalling::field_type<
+                                Endianness>,
+                            CurveGroupType
+                        >> &values = curve_elem_vector.value();
+                    std::size_t size = values.size();
+
+                    for (std::size_t i=0; 
+                         i<size;
+                         i++){
+                        result.push_back(
+                            values[i].value());
+                    }
+                    return result;
+                }
             }    // namespace types
         }        // namespace marshalling
     }        // namespace crypto3
