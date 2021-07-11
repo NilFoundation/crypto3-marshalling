@@ -48,6 +48,7 @@ set(TESTS_NAMES
     "integral_fixed_size_container"
     "integral_non_fixed_size_container"
     "field_element"
+    "field_element_non_fixed_size_container"
     "curve_element"
     "curve_element_fixed_size_container"
     "curve_element_non_fixed_size_container"

@@ -74,11 +74,6 @@ namespace nil {
                         }
 
                         static constexpr std::size_t length() {
-                            return max_length()/8 + 
-                            ((max_length()%8)?1:0);
-                        }
-
-                        static constexpr std::size_t bit_length() {
                             return max_length();
                         }
 
@@ -87,6 +82,15 @@ namespace nil {
                         }
 
                         static constexpr std::size_t max_length() {
+                            return max_bit_length()/8 + 
+                            ((max_bit_length()%8)?1:0);
+                        }
+
+                        static constexpr std::size_t bit_length() {
+                            return max_bit_length();
+                        }
+
+                        static constexpr std::size_t max_bit_length() {
                             return CurveGroupType::underlying_field_type::value_bits;
                         }
 
@@ -105,8 +109,7 @@ namespace nil {
                             // }
 
                             read_no_status(iter);
-                            iter += max_length()/8 + 
-                                ((max_length()%8)?1:0);
+                            iter += max_length();
                             return nil::marshalling::status_type::success;
                         }
 
@@ -125,8 +128,7 @@ namespace nil {
                             // }
 
                             write_no_status(iter);
-                            iter += max_length()/8 + 
-                                ((max_length()%8)?1:0);
+                            iter += max_length();
                             return nil::marshalling::status_type::success;
                         }
 

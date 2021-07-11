@@ -86,21 +86,30 @@ namespace nil {
                         }
 
                         static constexpr std::size_t length() {
-                            return max_length()/8 + 
-                            ((max_length()%8)?1:0);
-                        }
-
-                        static constexpr std::size_t bit_length() {
                             return max_length();
                         }
 
                         static constexpr std::size_t min_length() {
+                            return min_bit_length()/8 + 
+                            ((min_bit_length()%8)?1:0);
+                        }
+
+                        static constexpr std::size_t max_length() {
+                            return max_bit_length()/8 + 
+                            ((max_bit_length()%8)?1:0);
+                        }
+
+                        static constexpr std::size_t bit_length() {
+                            return max_bit_length();
+                        }
+
+                        static constexpr std::size_t min_bit_length() {
                             return nil::crypto3::multiprecision::backends::min_precision<backend_type>::value == UINT_MAX ?
                                 INT_MAX :
                                 nil::crypto3::multiprecision::backends::min_precision<backend_type>::value;
                         }
 
-                        static constexpr std::size_t max_length() {
+                        static constexpr std::size_t max_bit_length() {
                             return nil::crypto3::multiprecision::backends::max_precision<backend_type>::value == UINT_MAX ?
                                 INT_MAX :
                                 nil::crypto3::multiprecision::backends::max_precision<backend_type>::value;
@@ -121,8 +130,7 @@ namespace nil {
                             // }
 
                             read_no_status(iter);
-                            iter += max_length()/8 + 
-                                ((max_length()%8)?1:0);
+                            iter += max_length();
                             return nil::marshalling::status_type::success;
                         }
 
@@ -142,8 +150,7 @@ namespace nil {
 
                             write_no_status(iter);
 
-                            iter += max_length()/8 + 
-                                ((max_length()%8)?1:0);
+                            iter += max_length();
                             return nil::marshalling::status_type::success;
                         }
 
