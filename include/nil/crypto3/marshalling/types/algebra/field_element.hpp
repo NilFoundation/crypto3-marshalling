@@ -176,7 +176,15 @@ namespace nil {
                     field_element<
                         nil::marshalling::field_type<
                             Endianness>,
-                        FieldType>
+                        FieldType
+                    >,
+                    nil::marshalling::option::sequence_size_field_prefix<
+                        nil::marshalling::types::integral<
+                            nil::marshalling::field_type<
+                            Endianness>, 
+                            std::size_t
+                        >
+                    > 
                 >
                     fill_field_element_vector(std::vector<typename FieldType::value_type> field_elem_vector){
 
@@ -192,7 +200,13 @@ namespace nil {
                     using field_element_vector_type = 
                         nil::marshalling::types::array_list<
                             TTypeBase,
-                            field_element_type
+                            field_element_type,
+                            nil::marshalling::option::sequence_size_field_prefix<
+                                nil::marshalling::types::integral<
+                                    TTypeBase, 
+                                    std::size_t
+                                >
+                            > 
                         >;
 
                     field_element_vector_type result;
@@ -308,7 +322,14 @@ namespace nil {
                                 nil::marshalling::field_type<
                                     Endianness>,
                                 FieldType
-                            >
+                            >,
+                            nil::marshalling::option::sequence_size_field_prefix<
+                                nil::marshalling::types::integral<
+                                    nil::marshalling::field_type<
+                                    Endianness>, 
+                                    std::size_t
+                                >
+                            > 
                         > field_elem_vector){
 
                     std::vector<typename FieldType::value_type> result;

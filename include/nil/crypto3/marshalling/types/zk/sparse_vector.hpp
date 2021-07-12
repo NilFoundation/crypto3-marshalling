@@ -32,11 +32,11 @@
 
 #include <nil/marshalling/types/bundle.hpp>
 #include <nil/marshalling/types/array_list.hpp>
+#include <nil/marshalling/types/integral.hpp>
+#include <nil/marshalling/types/tag.hpp>
+#include <nil/marshalling/types/detail/adapt_basic_field.hpp>
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/options.hpp>
-#include <nil/marshalling/types/detail/adapt_basic_field.hpp>
-#include <nil/marshalling/types/tag.hpp>
-#include <nil/marshalling/types/integral.hpp>
 
 #include <nil/crypto3/algebra/type_traits.hpp>
 
@@ -68,6 +68,12 @@ namespace nil {
                                 nil::marshalling::types::integral<
                                     TTypeBase, 
                                     std::size_t
+                                >,
+                                nil::marshalling::option::sequence_size_field_prefix<
+                                    nil::marshalling::types::integral<
+                                        TTypeBase, 
+                                        std::size_t
+                                    >
                                 > 
                             >, 
                             nil::marshalling::types::array_list<
@@ -75,6 +81,12 @@ namespace nil {
                                 types::curve_element<
                                     TTypeBase, 
                                     typename SparseVector::group_type
+                                >,
+                                nil::marshalling::option::sequence_size_field_prefix<
+                                    nil::marshalling::types::integral<
+                                        TTypeBase, 
+                                        std::size_t
+                                    >
                                 > 
                             >,
                             nil::marshalling::types::integral<
@@ -86,7 +98,7 @@ namespace nil {
 
                 template <typename SparseVector, 
                           typename Endianness>
-                sparse_vector_type<nil::marshalling::field_type<
+                sparse_vector<nil::marshalling::field_type<
                                 Endianness>,
                                 SparseVector>
                     fill_sparse_vector(SparseVector sparse_vector_inp){
@@ -94,15 +106,81 @@ namespace nil {
                     using TTypeBase = nil::marshalling::field_type<
                                 Endianness>;
 
-                    return sparse_vector_type<nil::marshalling::field_type<
+                    using integral_type = 
+                        nil::marshalling::types::integral<
+                            TTypeBase,
+                            std::size_t
+                        >;
+                    using integral_vector_type = 
+                        nil::marshalling::types::array_list<
+                            TTypeBase,
+                            integral_type,
+                            nil::marshalling::option::sequence_size_field_prefix<
+                                integral_type
+                            > 
+                        >;
+
+                    integral_vector_type filled_indices;
+
+                    std::vector<integral_type> &filled_indices_val = filled_indices.value();
+                    for (std::size_t i=0; 
+                         i<sparse_vector_inp.indices.size();
+                         i++){
+                        filled_indices_val.push_back(integral_type(
+                            sparse_vector_inp.indices[i]));
+                    }
+
+                    return sparse_vector<nil::marshalling::field_type<
                                 Endianness>,
                                 SparseVector>(
-                                    fill_integral_vector<std::size_t, Endianness>(sparse_vector_inp.indicies),
-                                    fill_curve_element_vector<
-                                        typename SparseVector::group_type, 
-                                        Endianness>(sparse_vector_inp.values),
-                                    integral<nil::marshalling::field_type<Endianness>, 
-                                             std::size_t>(sparse_vector_inp.domain_size_));
+                                    std::make_tuple(
+                                        filled_indices,
+                                        fill_curve_element_vector<
+                                            typename SparseVector::group_type, 
+                                            Endianness>(sparse_vector_inp.values),
+                                        integral_type(sparse_vector_inp.domain_size_)));
+                }
+
+                template <typename SparseVector, 
+                          typename Endianness>
+                SparseVector
+                    construct_sparse_vector(
+                        sparse_vector<nil::marshalling::field_type<
+                                Endianness>,
+                                SparseVector> filled_sparse_vector){
+
+                    using TTypeBase = nil::marshalling::field_type<
+                                Endianness>;
+
+                    using integral_type = 
+                        nil::marshalling::types::integral<
+                            TTypeBase,
+                            std::size_t
+                        >;
+
+                    std::vector<std::size_t> constructed_indices;
+                    std::vector<integral_type> &filled_indices = 
+                        std::get<0>(filled_sparse_vector.value()).value();
+                    std::size_t size = filled_indices.size();
+
+                    for (std::size_t i=0; 
+                         i<size;
+                         i++){
+                        constructed_indices.push_back(
+                            filled_indices[i].value());
+                    }
+
+                    SparseVector result;
+                    result.indices = constructed_indices;
+                    result.values = 
+                        constuct_curve_element_vector<
+                            typename SparseVector::group_type, 
+                            Endianness>(
+                                std::get<1>(filled_sparse_vector.value()));
+                    result.domain_size_ = 
+                        std::get<2>(filled_sparse_vector.value()).value();
+
+                    return result;
                 }
 
             }    // namespace types

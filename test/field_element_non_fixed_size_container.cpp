@@ -32,6 +32,7 @@
 #include <iostream>
 #include <iomanip>
 
+#include <nil/marshalling/types/integral.hpp>
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
@@ -80,7 +81,14 @@ void test_field_element_non_fixed_size_container(
             types::field_element<
                 nil::marshalling::field_type<
                     Endianness>,
-                FieldType>
+                FieldType>,
+            nil::marshalling::option::sequence_size_field_prefix<
+                nil::marshalling::types::integral<
+                    nil::marshalling::field_type<
+                    Endianness>, 
+                    std::size_t
+                >
+            > 
         >;
 
     field_element_vector_type test_val = 

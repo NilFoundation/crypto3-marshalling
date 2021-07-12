@@ -34,10 +34,11 @@
 
 #include <nil/crypto3/multiprecision/number.hpp>
 
+#include <nil/marshalling/types/integral.hpp>
+#include <nil/marshalling/types/tag.hpp>
+#include <nil/marshalling/types/detail/adapt_basic_field.hpp>
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/options.hpp>
-#include <nil/marshalling/types/detail/adapt_basic_field.hpp>
-#include <nil/marshalling/types/tag.hpp>
 
 #include <nil/crypto3/marshalling/types/integral/basic_fixed_precision_type.hpp>
 #include <nil/crypto3/marshalling/types/integral/basic_non_fixed_precision_type.hpp>
@@ -414,7 +415,14 @@ namespace nil {
                     integral<
                         nil::marshalling::field_type<
                             Endianness>,
-                        IntegralContainer>
+                        IntegralContainer>,
+                    nil::marshalling::option::sequence_size_field_prefix<
+                        nil::marshalling::types::integral<
+                            nil::marshalling::field_type<
+                            Endianness>, 
+                            std::size_t
+                        >
+                    > 
                 >
                     fill_integral_vector(std::vector<IntegralContainer> integral_vector){
 
@@ -430,7 +438,14 @@ namespace nil {
                     using integral_vector_type = 
                         nil::marshalling::types::array_list<
                             TTypeBase,
-                            integral_type
+                            integral_type, 
+                            nil::marshalling::option::sequence_size_field_prefix<
+                                nil::marshalling::types::integral<
+                                    nil::marshalling::field_type<
+                                    Endianness>, 
+                                    std::size_t
+                                >
+                            > 
                         >;
 
                     integral_vector_type result;
@@ -456,7 +471,14 @@ namespace nil {
                                 nil::marshalling::field_type<
                                     Endianness>,
                                 IntegralContainer
-                            >
+                            >,
+                            nil::marshalling::option::sequence_size_field_prefix<
+                                nil::marshalling::types::integral<
+                                    nil::marshalling::field_type<
+                                    Endianness>, 
+                                    std::size_t
+                                >
+                            > 
                         > integral_vector){
 
                     std::vector<IntegralContainer> result;

@@ -394,7 +394,14 @@ namespace nil {
                     curve_element<
                         nil::marshalling::field_type<
                             Endianness>,
-                        CurveGroupType>
+                        CurveGroupType>,
+                    nil::marshalling::option::sequence_size_field_prefix<
+                        nil::marshalling::types::integral<
+                            nil::marshalling::field_type<
+                            Endianness>, 
+                            std::size_t
+                        >
+                    > 
                 >
                     fill_curve_element_vector(std::vector<typename CurveGroupType::value_type> curve_elem_vector){
 
@@ -410,7 +417,14 @@ namespace nil {
                     using curve_element_vector_type = 
                         nil::marshalling::types::array_list<
                             TTypeBase,
-                            curve_element_type
+                            curve_element_type,
+                            nil::marshalling::option::sequence_size_field_prefix<
+                                nil::marshalling::types::integral<
+                                    nil::marshalling::field_type<
+                                    Endianness>, 
+                                    std::size_t
+                                >
+                            > 
                         >;
 
                     curve_element_vector_type result;
@@ -436,7 +450,14 @@ namespace nil {
                                 nil::marshalling::field_type<
                                     Endianness>,
                                 CurveGroupType
-                            >
+                            >,
+                            nil::marshalling::option::sequence_size_field_prefix<
+                                nil::marshalling::types::integral<
+                                    nil::marshalling::field_type<
+                                    Endianness>, 
+                                    std::size_t
+                                >
+                            > 
                         > curve_elem_vector){
 
                     std::vector<typename CurveGroupType::value_type> result;

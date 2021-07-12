@@ -32,8 +32,9 @@
 #include <iostream>
 #include <iomanip>
 
-#include <nil/marshalling/status_type.hpp>
+#include <nil/marshalling/types/integral.hpp>
 #include <nil/marshalling/types/array_list.hpp>
+#include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/container/static_vector.hpp>
 #include <nil/marshalling/field_type.hpp>
 #include <nil/marshalling/endianness.hpp>
@@ -77,14 +78,21 @@ void test_curve_element_non_fixed_size_container(
     nil::marshalling::types::array_list<
         nil::marshalling::field_type<
         Endianness>,
-        curve_element_type
+        curve_element_type, 
+        nil::marshalling::option::sequence_size_field_prefix<
+            nil::marshalling::types::integral<
+                nil::marshalling::field_type<
+                Endianness>, 
+                std::size_t
+            >
+        > 
     >;
 
     std::size_t unitblob_size = 
         curve_element_type::bit_length()/units_bits + 
         ((curve_element_type::bit_length()%units_bits)?1:0);
     std::vector<unit_type> cv;
-    cv.resize(unitblob_size*TSize, 0x00);
+    cv.resize(unitblob_size*TSize+sizeof(std::size_t), 0x00);
 
     std::vector<curve_element_type> container_data;
 
