@@ -20,8 +20,11 @@ cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
                        ${CMAKE_WORKSPACE_NAME}::zk
                        nil::marshalling)
 
-macro(define_marshalling_test name)
-    cm_test(NAME marshalling_${name}_test SOURCES ${name}.cpp)
+macro(define_marshalling_test test)
+    
+    get_filename_component(name ${test} NAME)
+
+    cm_test(NAME marshalling_${name}_test SOURCES ${test}.cpp)
 
     target_include_directories(marshalling_${name}_test PRIVATE
                                "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -30,7 +33,7 @@ macro(define_marshalling_test name)
                                ${Boost_INCLUDE_DIRS})
 
     set_target_properties(marshalling_${name}_test PROPERTIES
-                          CXX_STANDARD 14
+                          CXX_STANDARD 17
                           CXX_STANDARD_REQUIRED TRUE)
 
     if(TARGET Boost::unit_test_framework)
@@ -44,17 +47,18 @@ macro(define_marshalling_test name)
 endmacro()
 
 set(TESTS_NAMES
-    "accumulation_vector"
-    "curve_element"
-    "curve_element_fixed_size_container"
-    "curve_element_non_fixed_size_container"
-    "field_element"
-    "field_element_non_fixed_size_container"
     "integral"
     "integral_fixed_size_container"
     "integral_non_fixed_size_container"
-    "r1cs_gg_ppzksnark_verification_key"
-    "sparse_vector")
+    "algebra/curve_element"
+    "algebra/curve_element_fixed_size_container"
+    "algebra/curve_element_non_fixed_size_container"
+    "algebra/field_element"
+    "algebra/field_element_non_fixed_size_container"
+    "zk/accumulation_vector"
+    "zk/sparse_vector"
+    "zk/r1cs_gg_ppzksnark_verification_key"
+    "zk/r1cs_gg_ppzksnark_primary_input")
 
 foreach(TEST_NAME ${TESTS_NAMES})
     define_marshalling_test(${TEST_NAME})
