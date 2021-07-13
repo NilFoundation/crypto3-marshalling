@@ -128,7 +128,7 @@ void test_round_trip_non_fixed_size_container_fixed_precision(
             Endianness>(val_vector);
 
     std::vector<T> constructed_val = 
-        types::constuct_integral_vector<T, 
+        types::construct_integral_vector<T, 
             Endianness>(
                 filled_val);
     BOOST_CHECK(std::equal(val_container.begin(), 

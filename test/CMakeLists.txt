@@ -53,6 +53,7 @@ set(TESTS_NAMES
     "integral"
     "integral_fixed_size_container"
     "integral_non_fixed_size_container"
+    "r1cs_gg_ppzksnark_verification_key"
     "sparse_vector")
 
 foreach(TEST_NAME ${TESTS_NAMES})

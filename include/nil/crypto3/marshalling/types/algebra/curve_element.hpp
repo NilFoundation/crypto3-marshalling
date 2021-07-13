@@ -442,7 +442,7 @@ namespace nil {
                 template<typename CurveGroupType, 
                          typename Endianness>
                 std::vector<typename CurveGroupType::value_type>
-                    constuct_curve_element_vector(
+                    construct_curve_element_vector(
                         nil::marshalling::types::array_list<
                             nil::marshalling::field_type<
                                 Endianness>,

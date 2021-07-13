@@ -228,7 +228,7 @@ namespace nil {
                                 !(algebra::is_extended_field<FieldType>::value), 
                                 typename FieldType::value_type
                              >::type
-                        constuct_field_element(typename std::array<
+                        construct_field_element(typename std::array<
                             typename FieldType::modulus_type, 
                             FieldType::arity>::iterator 
                             field_elem_data_iter){
@@ -241,7 +241,7 @@ namespace nil {
                                 algebra::is_extended_field<FieldType>::value, 
                                 typename FieldType::value_type
                              >::type
-                        constuct_field_element(typename std::array<
+                        construct_field_element(typename std::array<
                             typename FieldType::modulus_type, 
                             FieldType::arity>::iterator 
                             field_elem_data_iter){
@@ -258,7 +258,7 @@ namespace nil {
                              i < cur_arity;
                              i++){
 
-                            data[i] = constuct_field_element<
+                            data[i] = construct_field_element<
                                 typename FieldType::underlying_field_type>(
                                 field_elem_data_iter + 
                                 i*FieldType::underlying_field_type::arity);
@@ -274,7 +274,7 @@ namespace nil {
                                 algebra::is_extended_field<FieldType>::value, 
                                 typename FieldType::value_type
                              >::type
-                    constuct_field_element(field_element<
+                    construct_field_element(field_element<
                                 nil::marshalling::field_type<
                                 Endianness>,
                             FieldType> field_elem){
@@ -290,7 +290,7 @@ namespace nil {
                             field_elem_data[i] = field_elem.value()[i].value();
                         }
 
-                        return detail::constuct_field_element<
+                        return detail::construct_field_element<
                                    FieldType>(
                                         field_elem_data.begin());
                 }
@@ -302,7 +302,7 @@ namespace nil {
                                 !(algebra::is_extended_field<FieldType>::value), 
                                 typename FieldType::value_type
                              >::type
-                    constuct_field_element(field_element<
+                    construct_field_element(field_element<
                                 nil::marshalling::field_type<
                                 Endianness>,
                             FieldType> field_elem){
@@ -314,7 +314,7 @@ namespace nil {
                 template<typename FieldType, 
                          typename Endianness>
                 std::vector<typename FieldType::value_type>
-                    constuct_field_element_vector(
+                    construct_field_element_vector(
                         nil::marshalling::types::array_list<
                             nil::marshalling::field_type<
                                 Endianness>,
@@ -344,7 +344,7 @@ namespace nil {
                          i<size;
                          i++){
                         result.push_back(
-                            constuct_field_element<
+                            construct_field_element<
                                 FieldType, 
                                 Endianness
                             >(values[i]));

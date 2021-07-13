@@ -64,11 +64,11 @@ namespace nil {
                     nil::marshalling::types::bundle<
                         TTypeBase,
                         std::tuple<
-                            types::curve_element<
+                            curve_element<
                                 TTypeBase, 
                                 typename AccumulationVector::group_type
                             >,
-                            types::sparse_vector<
+                            sparse_vector<
                                 TTypeBase, 
                                 zk::snark::sparse_vector< 
                                     typename AccumulationVector::group_type
@@ -114,15 +114,6 @@ namespace nil {
                         accumulation_vector<nil::marshalling::field_type<
                                 Endianness>,
                                 AccumulationVector> filled_accumulation_vector){
-
-                    using TTypeBase = nil::marshalling::field_type<
-                                Endianness>;
-
-                    using integral_type = 
-                        nil::marshalling::types::integral<
-                            TTypeBase,
-                            std::size_t
-                        >;
 
                     return AccumulationVector (
                         std::move(std::get<0>(filled_accumulation_vector.value()).value()),

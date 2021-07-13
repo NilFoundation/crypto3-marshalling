@@ -96,7 +96,7 @@ void test_field_element_non_fixed_size_container(
             Endianness>(val_container);
 
     std::vector<typename FieldType::value_type> constructed_val = 
-        types::constuct_field_element_vector<FieldType, 
+        types::construct_field_element_vector<FieldType, 
             Endianness>(
                 test_val);
     BOOST_CHECK(std::equal(val_container.begin(), 
@@ -123,7 +123,7 @@ void test_field_element_non_fixed_size_container(
                 cv.size());
 
     std::vector<typename FieldType::value_type> read_val = 
-        types::constuct_field_element_vector<FieldType, 
+        types::construct_field_element_vector<FieldType, 
             Endianness>(
                 test_val_read);
     BOOST_CHECK(std::equal(val_container.begin(), 

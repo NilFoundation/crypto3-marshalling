@@ -23,7 +23,7 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#define BOOST_TEST_MODULE crypto3_marshalling_sparse_vector_test
+#define BOOST_TEST_MODULE crypto3_marshalling_accumulation_vector_test
 
 #include <boost/test/unit_test.hpp>
 #include <boost/algorithm/string/case_conv.hpp>

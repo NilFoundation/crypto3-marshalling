@@ -78,7 +78,7 @@ namespace nil {
                             >, 
                             nil::marshalling::types::array_list<
                                 TTypeBase,
-                                types::curve_element<
+                                curve_element<
                                     TTypeBase, 
                                     typename SparseVector::group_type
                                 >,
@@ -173,7 +173,7 @@ namespace nil {
                     SparseVector result;
                     result.indices = constructed_indices;
                     result.values = 
-                        constuct_curve_element_vector<
+                        construct_curve_element_vector<
                             typename SparseVector::group_type, 
                             Endianness>(
                                 std::get<1>(filled_sparse_vector.value()));

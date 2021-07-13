@@ -108,7 +108,7 @@ void test_curve_element_non_fixed_size_container(
             Endianness>(val_container);
 
     std::vector<typename CurveGroup::value_type> constructed_val = 
-        types::constuct_curve_element_vector<CurveGroup, 
+        types::construct_curve_element_vector<CurveGroup, 
             Endianness>(
                 filled_val);
     BOOST_CHECK(std::equal(val_container.begin(), 

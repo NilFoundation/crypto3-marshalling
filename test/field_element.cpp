@@ -92,7 +92,7 @@ void test_field_element(
                 cv.size());
     
     typename FieldType::value_type read_val = 
-        types::constuct_field_element<FieldType, 
+        types::construct_field_element<FieldType, 
             Endianness>(
                 test_val_read);
 

@@ -463,7 +463,7 @@ namespace nil {
                 template<typename IntegralContainer, 
                          typename Endianness>
                 std::vector<IntegralContainer>
-                    constuct_integral_vector(
+                    construct_integral_vector(
                         nil::marshalling::types::array_list<
                             nil::marshalling::field_type<
                                 Endianness>,
