@@ -44,14 +44,15 @@ macro(define_marshalling_test name)
 endmacro()
 
 set(TESTS_NAMES
-    "integral"
-    "integral_fixed_size_container"
-    "integral_non_fixed_size_container"
-    "field_element"
-    "field_element_non_fixed_size_container"
+    "accumulation_vector"
     "curve_element"
     "curve_element_fixed_size_container"
     "curve_element_non_fixed_size_container"
+    "field_element"
+    "field_element_non_fixed_size_container"
+    "integral"
+    "integral_fixed_size_container"
+    "integral_non_fixed_size_container"
     "sparse_vector")
 
 foreach(TEST_NAME ${TESTS_NAMES})

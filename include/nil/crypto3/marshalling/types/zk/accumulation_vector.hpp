@@ -125,12 +125,12 @@ namespace nil {
                         >;
 
                     return AccumulationVector (
-                        std::get<0>(filled_accumulation_vector.value()).value();
-                        construct_sparse_vector<
+                        std::move(std::get<0>(filled_accumulation_vector.value()).value()),
+                        std::move(construct_sparse_vector<
                             zk::snark::sparse_vector<
                                 typename AccumulationVector::group_type>, 
                             Endianness>(
-                                std::get<1>(filled_accumulation_vector.value()))
+                                std::get<1>(filled_accumulation_vector.value())))
                             );
                 }
 
