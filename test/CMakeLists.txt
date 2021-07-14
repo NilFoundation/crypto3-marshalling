@@ -57,8 +57,9 @@ set(TESTS_NAMES
     "algebra/field_element_non_fixed_size_container"
     "zk/accumulation_vector"
     "zk/sparse_vector"
-    "zk/r1cs_gg_ppzksnark_verification_key"
-    "zk/r1cs_gg_ppzksnark_primary_input")
+    "zk/r1cs_gg_ppzksnark_primary_input"
+    "zk/r1cs_gg_ppzksnark_proof"
+    "zk/r1cs_gg_ppzksnark_verification_key")
 
 foreach(TEST_NAME ${TESTS_NAMES})
     define_marshalling_test(${TEST_NAME})
