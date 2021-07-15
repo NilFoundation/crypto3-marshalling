@@ -10,7 +10,7 @@
 include(CMTest)
 
 if(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
-    cm_find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+    cm_find_package(Boost REQUIRED COMPONENTS unit_test_framework filesystem log log_setup program_options thread system)
 endif()
 
 cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
@@ -18,6 +18,7 @@ cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
                        ${CMAKE_WORKSPACE_NAME}::multiprecision
                        ${CMAKE_WORKSPACE_NAME}::algebra
                        ${CMAKE_WORKSPACE_NAME}::zk
+                       ${CMAKE_WORKSPACE_NAME}::blueprint
                        nil::marshalling)
 
 macro(define_marshalling_test test)
@@ -59,7 +60,8 @@ set(TESTS_NAMES
     "zk/sparse_vector"
     "zk/r1cs_gg_ppzksnark_primary_input"
     "zk/r1cs_gg_ppzksnark_proof"
-    "zk/r1cs_gg_ppzksnark_verification_key")
+    "zk/r1cs_gg_ppzksnark_verification_key"
+    "zk/r1cs_gg_ppzksnark")
 
 foreach(TEST_NAME ${TESTS_NAMES})
     define_marshalling_test(${TEST_NAME})
