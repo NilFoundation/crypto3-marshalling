@@ -32,8 +32,10 @@
 
 #include <nil/marshalling/status_type.hpp>
 #include <nil/marshalling/options.hpp>
-#include <nil/marshalling/types/detail/adapt_basic_field.hpp>
+#include <nil/marshalling/types/integral.hpp>
+#include <nil/marshalling/types/array_list.hpp>
 #include <nil/marshalling/types/tag.hpp>
+#include <nil/marshalling/types/detail/adapt_basic_field.hpp>
 
 #include <nil/crypto3/marshalling/types/algebra/curve_element/basic_type.hpp>
 namespace nil {
