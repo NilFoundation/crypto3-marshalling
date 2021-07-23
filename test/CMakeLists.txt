@@ -15,14 +15,16 @@ endif()
 
 cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
                        ${Boost_LIBRARIES}
-                       ${CMAKE_WORKSPACE_NAME}::multiprecision
-                       ${CMAKE_WORKSPACE_NAME}::algebra
-                       ${CMAKE_WORKSPACE_NAME}::zk
-                       ${CMAKE_WORKSPACE_NAME}::blueprint
-                       nil::marshalling)
+
+                       ${CURRENT_PROJECT_NAME}::multiprecision
+                       ${CURRENT_PROJECT_NAME}::algebra
+                       ${CURRENT_PROJECT_NAME}::zk
+                       ${CURRENT_PROJECT_NAME}::blueprint
+
+                       ${CMAKE_WORKSPACE_NAME}::core)
 
 macro(define_marshalling_test test)
-    
+
     get_filename_component(name ${test} NAME)
 
     cm_test(NAME marshalling_${name}_test SOURCES ${test}.cpp)

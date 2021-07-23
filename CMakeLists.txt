@@ -13,9 +13,7 @@ include(CMConfig)
 include(CMDeploy)
 include(CMSetupVersion)
 
-if(NOT CMAKE_WORKSPACE_NAME OR NOT ("${CMAKE_WORKSPACE_NAME}" STREQUAL "crypto3"))
-    cm_workspace(crypto3)
-endif()
+cm_workspace(marshalling)
 
 macro(cm_find_package NAME)
     if(NOT "${NAME}" MATCHES "^${CMAKE_WORKSPACE_NAME}_.*$" AND NOT "${NAME}" STREQUAL CM)
@@ -25,7 +23,7 @@ macro(cm_find_package NAME)
     endif()
 endmacro()
 
-cm_project(marshalling WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES C CXX)
+cm_project(crypto3 WORKSPACE_NAME ${CMAKE_WORKSPACE_NAME} LANGUAGES C CXX)
 
 cm_find_package(CM)
 include(CMDeploy)
@@ -66,10 +64,12 @@ target_include_directories(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTER
 
 target_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTERFACE
                       ${Boost_LIBRARIES}
-                      ${CMAKE_WORKSPACE_NAME}::multiprecision
-                      ${CMAKE_WORKSPACE_NAME}::algebra
-                      ${CMAKE_WORKSPACE_NAME}::zk
-                      nil::marshalling)
+
+                      ${CURRENT_PROJECT_NAME}::multiprecision
+                      ${CURRENT_PROJECT_NAME}::algebra
+                      ${CURRENT_PROJECT_NAME}::zk
+
+                      ${CMAKE_WORKSPACE_NAME}::core)
 
 cm_deploy(TARGETS ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
           INCLUDE include
